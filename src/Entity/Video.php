@@ -3,7 +3,7 @@
 namespace Coa\VideolibraryBundle\Entity;
 
 use App\Entity\User;
-use App\COA\VideolibraryBundle\Repository\VideoRepository;
+use Coa\VideolibraryBundle\Repository\VideoRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 /**

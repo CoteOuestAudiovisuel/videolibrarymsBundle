@@ -1,8 +1,8 @@
 <?php
 
-namespace App\COA\VideolibraryBundle\Repository;
+namespace Coa\VideolibraryBundle\Repository;
 
-use App\COA\VideolibraryBundle\Entity\Video;
+use Coa\VideolibraryBundle\Entity\Video;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
