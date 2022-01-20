@@ -4,6 +4,7 @@
     "type": "symfony-bundle",
     "version": "dev-master",
     "minimum-stability": "dev",
+    "prefer-stable": false,
     "require": {
         "php": ">=7.4",
         "symfony/framework-bundle": "^5.2",
