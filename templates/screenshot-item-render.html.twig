@@ -1,0 +1,25 @@
+<div class="row screenshots">
+    {% for key in video.screenshots %}
+        <div data-key="{{ key }}" class="col-3 p-1 screenshot">
+            <div class="position-relative">
+                <img class="img-fluid" src="{{ cloudfront_baseurl }}/{{ key }}" alt="">
+                <div class="screenshot--overlay">
+                    <button class="btn btn-dark btn-select-thumbnail">
+                        Définir comme vignette
+                    </button>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+
+
+    <a href="" class="col-3 p-1 add" >
+        <div class="bg-light text-decoration-none position-relative d-inline-block mx-0 px-0 align-middle w-100" style="height: 120px;vertical-align: middle">
+            <div style="height: 100%; text-shadow: 1px 1px #000" class="text-white d-flex flex-column justify-content-center align-items-center">
+                <i class="fa fa-plus fa-2x"></i>
+            </div>
+        </div>
+
+    </a>
+</div>

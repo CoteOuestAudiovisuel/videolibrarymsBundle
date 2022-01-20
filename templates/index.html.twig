@@ -1,0 +1,346 @@
+{% extends 'layouts/admin_base.html.twig' %}
+
+{% block title %}Programmes{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/libs/venobox/venobox.css') }}">
+
+
+    <style>
+
+        body #infinite-loading{
+            display: none;
+        }
+
+        body.infinite-scroll-active #infinite-loading{
+            display: block;
+        }
+
+        #upload-list{
+            position: fixed;
+            right: 2%;
+            bottom: 0;
+            z-index: 10;
+            width: 30%;
+            display: none;
+        }
+
+        #upload-list.open{
+            display: block;
+        }
+
+        #upload-list .card-body{
+            -webkit-transition: .4s ease-in-out all;
+            -moz-transition: .4s ease-in-out all;
+            transition: .4s ease-in-out all;
+        }
+
+        #upload-list.closed .card-body{
+            height: 0;
+            padding: 0;
+            -webkit-transition: .4s ease-in-out all;
+            -moz-transition: .4s ease-in-out all;
+            transition: .4s ease-in-out all;
+        }
+
+        #upload-list .upload-list-item-name{
+            font-size: 14px;
+        }
+
+        #upload-list .counter {
+            font-size: 1.8rem;
+            text-shadow: 2px 2px #000;
+        }
+
+        .drop-placeholder{
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+
+            display: none;
+            z-index: 20;
+            background: rgba(0,0,0,0.6);
+
+        }
+
+        .drop-placeholder h1{
+            font-size: 4rem;
+            text-shadow: 1px 1px #000;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        body.dragstart .drop-placeholder{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .counter-animation{
+            animation: bounce 1.5s infinite ease-out;
+            -webkit-animation: bounce 0.8s infinite ease-out;
+            transform: translateY(0px);
+            pointer-events: none;
+        }
+
+        @keyframes bounce {
+            from {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-30%);
+            }
+
+            75% {
+                transform: translateY(-20%);
+            }
+            to {
+                transform: translateY(0);
+            }
+
+        }
+
+        @-webkit-keyframes bounce {
+            from {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-30%);
+            }
+
+            75% {
+                transform: translateY(-20%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+
+        .circle-progress strong {
+            position: absolute;
+            top: 30px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            line-height: 40px;
+            font-size: 30px;
+        }
+
+        .screenshot{
+
+        }
+
+        .screenshot--overlay{
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1;
+            background: rgba(255,255,255,.4);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            -webkit-transition: 0.5s ease-in-out opacity;
+            transition: 0.5s ease-in-out opacity;
+            opacity: 0;
+        }
+
+        .screenshot:hover .screenshot--overlay{
+            opacity: 1;
+            transition: 0.5s ease-in-out opacity;
+        }
+
+        .data-item-image{
+            width: 312px; /*280px;*/
+            height: 176px; /*157.5px;*/
+            background: url('{{ asset("assets/admin/images/not-available.png") }}') no-repeat 0 0;
+        }
+
+        .video-sprites:not(.active){
+            background-size: cover;
+        }
+
+        .video-sprites.active{
+
+        }
+
+        .table > tbody > tr:nth-child(1) td{
+            border-top: none;
+        }
+    </style>
+
+{% endblock %}
+
+{% block body %}
+    {% include 'admin/includes/_page_title.html.twig' with
+        {
+            'title': 'Video library',
+            'icon': 'pe-7s-monitor',
+            'subtitle': 'Gestion des videos et transcoding depuis Amazon MediaConvert et S3'} %}
+    {% include 'admin/includes/_flash.html.twig' %}
+
+
+    <div class="main-card card mb-3" id="main-container">
+
+        <div class="card-header">
+            <h5 class="card-title mb-0">Videos</h5>
+
+            <div class="ml-auto">
+                <button class="btn bg-plum-plate btn-sm btn-upload text-white">
+                    <i class="fa fa-upload"></i>&nbsp;
+                    Charger une video
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body">
+
+            <table class="table">
+
+                <tbody>
+                    {% include 'admin/videolibrary/item-render.html.twig' %}
+
+                    {% if  videos|length == 0 %}
+                        <tr>
+                            <td>
+                                <div class="alert alert-light">
+                                    <h3>0 resultats</h3>
+
+                                    <div>
+                                        Vous ne disposez aucune vidéos pour le moment
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <div style="text-align:center" id="infinite-loading">
+            <i  class="fa fa-spinner fa-spin fa-3x"></i>
+        </div>
+    </div>
+{% endblock %}
+
+{% block modal %}
+
+    <div class="drop-placeholder">
+        <h1>
+            Deposez ici vos fichiers videos
+        </h1>
+    </div>
+
+    <div id="upload-list">
+        <div class="main-card card" >
+            <div class="card-header bg-plum-plate">
+                <i class="fa fa-upload text-light"></i>&nbsp;&nbsp;
+                <h5 class="card-title m-0 text-light">Envois en cours</h5>
+                <div class="ml-auto">
+                    <div class="counter counter-animation text-light d-inline-block"></div>
+                    <a href="" class="text-light times">
+                        <i class="fa fa-angle-down fa-2x"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush"></ul>
+            </div>
+        </div>
+    </div>
+
+
+    {# modal de suppression #}
+    <div class="modal fade modal-remove" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="main-card card">
+                    <div class="card-header">
+                        <i class="header-icon lnr-question-circle icon-gradient bg-plum-plate"></i>
+                        Confirmation - &nbsp;<span class="custom-title"></span>
+                    </div>
+
+                    <div class="card-body">
+
+                        <p style="font-size: 16px">
+                            Voulez-vous vraiment supprimer cet élément ?
+                            <br> Cette action est irrevessible,et sera définitivement supprimé de votre base de donnée.
+                        </p>
+
+                    </div>
+
+                    <div class="d-block text-right card-footer">
+
+                        <button type="button" class="btn bg-plum-plate text-white yes">
+                            Oui
+                        </button>
+
+                        <button type="button" class="btn bg-plum-plate text-white no" data-dismiss="modal">
+                            Non
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade modal-screenshot" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="main-card card">
+                    <div class="card-header">
+                        <i class="header-icon lnr-question-circle icon-gradient bg-plum-plate"></i>
+                        Vignettes - &nbsp;<span class="custom-title"></span>
+                    </div>
+
+                    <div class="card-body">
+                        <div style="text-align:center" class="loading">
+                            <i  class="fa fa-spinner fa-spin fa-4x"></i>
+                        </div>
+                        <div class="screenshot-container"></div>
+                    </div>
+
+                    <div class="d-block text-right card-footer">
+
+                        <button type="button" class="btn bg-plum-plate text-white" data-dismiss="modal">
+                            Quitter
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    <script src="{{ asset('assets/libs/venobox/venobox.min.js') }}"></script>
+    <script src="{{ asset('assets/libs/jquery-circle-progress-1.2.2/circle-progress.min.js') }}"></script>
+    <script src="{{ asset('assets/admin/js/aaz.js') }}"></script>
+    <script src="{{ asset('assets/admin/js/videolibrary/plugin.js') }}"></script>
+    <script src="{{ asset('assets/admin/js/videolibrary/index.js') }}"></script>
+
+    <script>
+        window.addEventListener("load",function (e){
+            $('.venobox').venobox();
+        });
+
+
+    </script>
+{% endblock %}
