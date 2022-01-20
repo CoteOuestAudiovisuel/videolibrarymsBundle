@@ -19,7 +19,7 @@
     "license": "proprietary",
     "autoload": {
         "psr-4": {
-            "Coa\\VideolibraryBundle\\": "src/"
+            "Coa\\VideolibraryBundle\\": ["src/","/"]
         }
     },
     "authors": [
