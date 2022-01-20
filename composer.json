@@ -1,8 +1,5 @@
 {
     "name": "coa/videolibrary-bundle",
-    "version": "dev-main",
-    "prefer-stable": true,
-    "minimum-stability": "dev",
     "description": "permet de gerer les videos d'une plateforme vod sur AWS",
     "type": "symfony-bundle",
     "require": {
