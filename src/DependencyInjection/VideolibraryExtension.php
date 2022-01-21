@@ -16,10 +16,10 @@ class VideolibraryExtension extends Extension
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yaml');
 
-        $container->setParameter('coa_videolibrary.my_var_string', $configs['my_var_string']);
-        $container->setParameter('coa_videolibrary.my_array', $configs['my_array']);
-        $container->setParameter('coa_videolibrary.my_integer', $configs['my_integer']);
-        $container->setParameter('coa_videolibrary.my_var_string_option', $configs['my_var_string_option']);
+//        $container->setParameter('coa_videolibrary.my_var_string', $configs['my_var_string']);
+//        $container->setParameter('coa_videolibrary.my_array', $configs['my_array']);
+//        $container->setParameter('coa_videolibrary.my_integer', $configs['my_integer']);
+//        $container->setParameter('coa_videolibrary.my_var_string_option', $configs['my_var_string_option']);
     }
 
 
