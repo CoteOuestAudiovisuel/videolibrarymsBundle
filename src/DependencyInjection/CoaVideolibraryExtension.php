@@ -9,7 +9,7 @@ use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 /**
  * VideolibraryExtension
  */
-class VideolibraryExtension extends Extension
+class CoaVideolibraryExtension extends Extension
 {
     public function load(array $configs, ContainerBuilder $container)
     {
@@ -18,6 +18,4 @@ class VideolibraryExtension extends Extension
 
         $container->setParameter('coa_videolibrary', $configs);
     }
-
-
 }

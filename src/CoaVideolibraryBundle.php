@@ -1,17 +1,17 @@
 <?php
 namespace Coa\VideolibraryBundle;
-use Coa\VideolibraryBundle\DependencyInjection\VideolibraryExtension;
+use Coa\VideolibraryBundle\DependencyInjection\CoaVideolibraryExtension;
 
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-class VideolibraryBundle extends Bundle
+class CoaVideolibraryBundle extends Bundle
 {
     public function build(ContainerBuilder $container)
     {
         parent::build($container);
-        $ext = new VideolibraryExtension([],$container);
+        $ext = new CoaVideolibraryExtension([],$container);
     }
 
     public function getPath(): string
