@@ -5,6 +5,7 @@ use Aws\Sts\StsClient;
 use Aws\S3\S3Client;
 use Aws\S3\Exception\S3Exception;
 use Aws\Exception\AwsException;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 
 class S3Service
@@ -12,16 +13,19 @@ class S3Service
     protected string $region;
     protected string $version;
     private static S3Client $client;
+    private ContainerInterface $container;
 
 
-    public function __construct(string $region, string $version)
-    {
-        $this->region = $region;
-        $this->version = $version;
+    public function __construct(ContainerInterface $container){
+        $this->container = $container;
 
-        foreach ($_ENV as $k => $v) {
-            if (!str_starts_with($k, "AWS_")) continue;
-            putenv(sprintf("%s=%s", $k, $v));
+        $env = getenv();
+        if(!isset($env["AWS_ACCESS_KEY_ID"])){
+            putenv(sprintf("%s=%s","AWS_ACCESS_KEY_ID",$container->getParameter("coa_videolibrary.aws_access_key_id")));
+        }
+
+        if(!isset($env["AWS_SECRET_ACCESS_KEY"])){
+            putenv(sprintf("%s=%s","AWS_SECRET_ACCESS_KEY",$container->getParameter("coa_videolibrary.aws_secret_access_key")));
         }
     }
 
@@ -32,8 +36,8 @@ class S3Service
         }
 
         $client = new S3Client([
-            'region' => 'us-east-2',
             'version' => 'latest',
+            'region' => $this->container->getParameter("coa_videolibrary.aws_region")
         ]);
 
         self::$client = $client;
@@ -95,24 +99,7 @@ class S3Service
         $result = [];
         try {
             $client = $this->buildClient();
-
-            $result = $client->deleteMatchingObjects($bucket,$prefix);
-
-//            $objects = $client->getPaginator('ListObjects', [
-//                'Bucket' => $bucket,
-//                'Delimiter' => '/',
-//                "Prefix"=>$prefix
-//            ]);
-//
-//            $keys = $objects->search("Contents[].Key");
-//
-//            foreach($keys as $el){
-//                $result = $client->deleteObject([
-//                    'Bucket' => $bucket,
-//                    'Key' => $el,
-//                ]);
-//            }
-
+            $client->deleteMatchingObjects($bucket,$prefix);
         } catch (S3Exception $e) {
             $result["error"] = $e->getMessage();
         }

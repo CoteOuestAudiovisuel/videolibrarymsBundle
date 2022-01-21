@@ -5,11 +5,16 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     coa_videolibrary:
-        AWS_ACCESS_KEY_ID: ''
-        AWS_SECRET_ACCESS_KEY: ''
-        AWS_ACCOUNT_ENDPOINT: ''
-        MEDIA_CONVERT_ROLE_ARN: ''
-        CLOUD_FRONT_DISTRIB: ''
+        aws_access_key_id: ''
+        aws_secret_access_key: ''
+        aws_region: 'us-east-2'
+        mediaconvert_endpoint: ''
+        mediaconvert_role_arn: ''
+        cloudfront_distrib: ''
+        s3_bucket: ''
+        keys_folder: '%kernel.project_dir%/keys'
+        keys_route: '/keys'
+        upload_folder: '%kernel.project_dir%/public/coa_videolibrary'
 
 
 services:

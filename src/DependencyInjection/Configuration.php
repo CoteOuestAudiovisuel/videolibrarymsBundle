@@ -14,25 +14,42 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
 
-            ->scalarNode('AWS_ACCESS_KEY_ID')
+            ->scalarNode('aws_access_key_id')
             ->isRequired()
             ->end()
 
-            ->scalarNode('AWS_SECRET_ACCESS_KEY')
+            ->scalarNode('aws_secret_access_key')
             ->isRequired()
             ->end()
 
-            ->scalarNode('AWS_ACCOUNT_ENDPOINT')
+            ->scalarNode('aws_region')
             ->isRequired()
             ->end()
 
-            ->scalarNode('MEDIA_CONVERT_ROLE_ARN')
+            ->scalarNode('mediaconvert_endpoint')
             ->isRequired()
             ->end()
 
-            ->scalarNode('CLOUD_FRONT_DISTRIB')
+            ->scalarNode('mediaconvert_role_arn')
             ->isRequired()
             ->end()
+
+            ->scalarNode('cloudfront_distrib')
+            ->isRequired()
+            ->end()
+
+            ->scalarNode('s3_bucket')
+            ->isRequired()
+            ->end()
+
+            ->scalarNode('keys_folder')
+            ->isRequired()
+            ->end()
+
+            ->scalarNode('keys_route')
+            ->end()
+
+
 
             ->end();
 

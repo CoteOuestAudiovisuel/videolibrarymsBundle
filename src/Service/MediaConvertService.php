@@ -8,28 +8,29 @@ use Aws\S3\S3Client;
 
 class MediaConvertService
 {
-    protected string $region;
-    protected string $version;
-    protected string $endpoint;
     private static MediaConvertClient $client;
+    private ContainerInterface $container;
 
 
-    public function __construct(string $endpoint, string $region, string $version){
-        $this->region = $region;
-        $this->version = $version;
-        $this->endpoint = $endpoint;
-
+    public function __construct(ContainerInterface $container){
+        $this->container = $container;
 
         $env = getenv();
-        foreach ($_ENV as $k=>$v){
-            if(!str_starts_with($k,"AWS_")) continue;
-            if(!isset($env[$k])){
-                putenv(sprintf("%s=%s",$k,$v));
-            }
+        if(!isset($env["AWS_ACCESS_KEY_ID"])){
+            putenv(sprintf("%s=%s","AWS_ACCESS_KEY_ID",$container->getParameter("coa_videolibrary.aws_access_key_id")));
+        }
 
+        if(!isset($env["AWS_SECRET_ACCESS_KEY"])){
+            putenv(sprintf("%s=%s","AWS_SECRET_ACCESS_KEY",$container->getParameter("coa_videolibrary.aws_secret_access_key")));
         }
     }
 
+    /**
+     * @param $job
+     * @return array
+     *
+     * format le resultat d'un job
+     */
     public function formatJob($job){
 
         $jobid = $job["Id"];
@@ -77,33 +78,49 @@ class MediaConvertService
         return $item;
     }
 
+    /**
+     * @return mixed
+     * recupere l'account enddoint du mediaconvert
+     */
     public  function getEndpoints(){
 
         $client = new MediaConvertClient([
-            //'profile' => 'default',
-            'version' => $this->version,
-            'region' => $this->region,
+            'version' => "lastest",
+            'region' => $this->container->getParameter("coa_videolibrary.aws_region"),
         ]);
 
         $result = $client->describeEndpoints([]);
         return $result['Endpoints'][0]['Url'];
     }
 
+    /**
+     * @return MediaConvertClient
+     * creer le singleton du client mediaconvert
+     */
     public  function buildClient() : MediaConvertClient{
         if(isset(self::$client)){
             return self::$client;
         }
 
         $client = new MediaConvertClient([
-            'version' => $this->version,
-            'region' => $this->region,
-            'endpoint' => $this->endpoint
+            'version' => "latest",
+            'region' => $this->container->getParameter("coa_videolibrary.aws_region"),
+            'endpoint' => $this->container->getParameter("coa_videolibrary.mediaconvert_endpoint")
         ]);
         self::$client = $client;
 
         return $client;
     }
 
+    /**
+     * @param int $maxResults
+     * @param string $orderBy
+     * @param string|null $status
+     * @param string|null $nextToken
+     * @return false[]
+     *
+     * liste les N dernières tâches puis les format avec formatJob
+     */
     public function listJobs(int $maxResults = 20, string $orderBy = "DESCENDING", ?string $status = "SUBMITTED", string $nextToken=null):array{
 
         $client = $this->buildClient();
@@ -140,6 +157,11 @@ class MediaConvertService
         return $result;
     }
 
+    /**
+     * @param string $jobId
+     * @return false[]
+     * retourne le status d'une tâche
+     */
     public  function getJob(string $jobId): array{
         $client = $this->buildClient();
         $job = $client->getJob(["Id"=>$jobId]);
@@ -153,13 +175,23 @@ class MediaConvertService
         return $result;
     }
 
+    /**
+     * @param string $inputfile
+     * @param string $keyfilename
+     * @param string $keyurl
+     * @param string $bucket
+     * @return false[]
+     * @throws \Exception
+     *
+     * creer une tache de transcodage
+     */
     public function createJob(string $inputfile, string $keyfilename, string $keyurl, string $bucket){
 
         $result = ["status"=>false];
 
         try {
             $client = $this->buildClient();
-            $payload = file_get_contents(__DIR__.'/../../templates/mediaconvert/job.json');
+            $payload = file_get_contents(__DIR__.'/../Resources/views/job.json');
 
             $keyval = random_bytes(16);
             $iv = random_bytes(16);
@@ -167,8 +199,12 @@ class MediaConvertService
             $timecode = $timecodes[random_int(0,count($timecodes)-1)];
             $outputfile = "s3://$bucket/$keyfilename/manifest";
 
-            file_put_contents(__DIR__."/../../keys/$keyfilename.key",$keyval);
-            file_put_contents(__DIR__."/../../keys/$keyfilename.iv",$iv);
+            $keys_folder = $this->container->getParameter("coa_videolibrary.keys_folder");
+            if(!file_exists($keys_folder)){
+                mkdir($keys_folder);
+            }
+
+            file_put_contents($keys_folder ."/". $keyfilename,$keyval);
 
             $payload = str_replace("__INPUTFILE__",$inputfile,$payload);
             $payload = str_replace("__OUTPUTFILE__",$outputfile,$payload);
@@ -177,11 +213,10 @@ class MediaConvertService
             $payload = str_replace("__IV__",bin2hex($iv),$payload);
             $payload = str_replace("__SCREENSHOT_TC__",$timecode,$payload);
 
-
             $jobSetting = json_decode($payload,true);
 
             $p = array_merge($jobSetting,[
-                "Role" => "arn:aws:iam::211301172288:role/service-role/MediaConvert_Default_Role",
+                "Role" => $this->container->getParameter("coa_videolibrary.mediaconvert_role_arn"),
                 "UserMetadata" => [
                     "Customer" => "Kiwi",
                     "Env" => "dev"
@@ -201,6 +236,12 @@ class MediaConvertService
         return $result;
     }
 
+    /**
+     * @param string $bucket
+     * @param string $prefix
+     * @return array
+     *
+     */
     public function getRessources(string $bucket,string $prefix){
 
         $result = [];

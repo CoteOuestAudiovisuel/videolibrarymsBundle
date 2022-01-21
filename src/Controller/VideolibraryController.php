@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/coa_videolibrary", name="coa_videolibrary_")
+ * @Route("/videolibrary", name="coa_videolibrary_")
  * @IsGranted("ROLE_MANAGER")
  * Class VideolibraryController
  * @package App\Controller
@@ -28,11 +28,12 @@ class VideolibraryController extends AbstractController
      */
     public function monIp(Request $request): Response
     {
-        return new Response("<h1>Titre du test</h1>");
+        dd($this->getParameter('coa_videolibrary'));
+        return new Response("<h1>Titre du test</h1><div> ${$data}</div>");
     }
     private  function  getTargetDirectory(){
 
-        $basedir = __DIR__ . "/../../../../../public/coa_videolibrary";
+        $basedir = $this->getParameter('coa_videolibrary')["UPLOAD_FOLDER"];
         if(!file_exists($basedir)){
             mkdir($basedir);
         }
@@ -50,12 +51,12 @@ class VideolibraryController extends AbstractController
         $offset = $request->query->get("offset",0);
 
         $data = $rep->findBy([],["id"=>"DESC"],$limit,$offset);
-        $view = '@COAVideolibrary/index.html.twig';
+        $view = '@coa_videolibrary/index.html.twig';
 
 
         if($request->isXmlHttpRequest()){
             $acceptHeader = AcceptHeader::fromString($request->headers->get('Accept'));
-            $view = '@COAVideolibrary/item-render.html.twig';
+            $view = '@coa_videolibrary/item-render.html.twig';
         }
 
         return $this->render($view, [
@@ -116,7 +117,7 @@ class VideolibraryController extends AbstractController
             case "SUBMITTED":
             case "pending":
             case "PROGRESSING":
-                $this->forward("@COAVideolibrary/Controller/VideolibraryController::cancelJob",["code"=>$video->getCode()]);
+                $this->forward("@CoaVideolibrary/Controller/VideolibraryController::cancelJob",["code"=>$video->getCode()]);
                 break;
         }
 
@@ -184,7 +185,7 @@ class VideolibraryController extends AbstractController
             $em->flush();
 
             $result["status"] = true;
-            $result["url"] = $this->getParameter("aws")["CLOUDFROUNT_BASEURL"] . "/" . $key;
+            $result["url"] = $this->getParameter("coa_videolibrary")["CLOUD_FROUNT_DISTRIB"] . "/" . $key;
         }
         return  $this->json($result);
     }
@@ -262,7 +263,7 @@ class VideolibraryController extends AbstractController
                             @unlink($filename);
                         }
                     }
-                    $job["html"] = $this->renderView("@COAVideolibrary/item-render.html.twig",["videos"=>[$video]]);
+                    $job["html"] = $this->renderView("@coa_videolibrary/item-render.html.twig",["videos"=>[$video]]);
                 }
             }
             unset($job);
@@ -326,8 +327,8 @@ class VideolibraryController extends AbstractController
                 // c'est ici qu'on lance le processus de transcodage sur AWS
                 $inputfile = $baseurl.$packages->getUrl('/coa_videolibrary/'.$code.'.mp4');
                 $keyfilename = $code;
-                $bucket = "myninatv";
-                $keyurl = $baseurl."/drm/$keyfilename.key";
+                $bucket = $this->getParameter("coa_videolibrary.s3_bucket");
+                $keyurl = $baseurl.$this->getParameter("coa_videolibrary.keys_route") . "/" . $keyfilename;
 
                 $result['inputfile'] = $inputfile;
                 try {
@@ -339,7 +340,7 @@ class VideolibraryController extends AbstractController
                 $video->setJobRef($job["data"]["id"]);
                 $video->setBucket($bucket);
                 $video->setJobPercent(0);
-                $result["html"] = $this->renderView("@COAVideolibrary/item-render.html.twig",["videos"=>[$video]]);
+                $result["html"] = $this->renderView("@coa_videolibrary/item-render.html.twig",["videos"=>[$video]]);
             }
 
             $em->persist($video);

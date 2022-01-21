@@ -1,0 +1,321 @@
+{
+  "UserMetadata": {},
+  "Role": "arn:aws:iam::211301172288:role/service-role/MediaConvert_Default_Role",
+  "Settings": {
+    "OutputGroups": [
+      {
+        "Name": "Apple HLS",
+        "Outputs": [
+          {
+            "VideoDescription": {
+              "CodecSettings": {
+                "Codec": "H_264",
+                "H264Settings": {
+                  "RateControlMode": "VBR",
+                  "QualityTuningLevel": "SINGLE_PASS",
+                  "Bitrate": 357840,
+                  "MaxBitrate": 382889
+                }
+              },
+              "Width": 426,
+              "Height": 240
+            },
+            "AudioDescriptions": [
+              {
+                "CodecSettings": {
+                  "Codec": "AAC",
+                  "AacSettings": {
+                    "Bitrate": 64000,
+                    "CodingMode": "CODING_MODE_2_0",
+                    "SampleRate": 48000
+                  }
+                }
+              }
+            ],
+            "OutputSettings": {
+              "HlsSettings": {}
+            },
+            "ContainerSettings": {
+              "Container": "M3U8",
+              "M3u8Settings": {}
+            },
+            "NameModifier": "_240p"
+          },
+          {
+            "VideoDescription": {
+              "CodecSettings": {
+                "Codec": "H_264",
+                "H264Settings": {
+                  "RateControlMode": "VBR",
+                  "QualityTuningLevel": "SINGLE_PASS",
+                  "Bitrate": 800000,
+                  "MaxBitrate": 856000
+                }
+              },
+              "Width": 640,
+              "Height": 360
+            },
+            "AudioDescriptions": [
+              {
+                "CodecSettings": {
+                  "Codec": "AAC",
+                  "AacSettings": {
+                    "Bitrate": 96000,
+                    "CodingMode": "CODING_MODE_2_0",
+                    "SampleRate": 48000
+                  }
+                }
+              }
+            ],
+            "OutputSettings": {
+              "HlsSettings": {}
+            },
+            "ContainerSettings": {
+              "Container": "M3U8",
+              "M3u8Settings": {}
+            },
+            "NameModifier": "_360p"
+          },
+          {
+            "VideoDescription": {
+              "CodecSettings": {
+                "Codec": "H_264",
+                "H264Settings": {
+                  "RateControlMode": "VBR",
+                  "QualityTuningLevel": "SINGLE_PASS",
+                  "Bitrate": 1400000,
+                  "MaxBitrate": 1498000
+                }
+              },
+              "Width": 842,
+              "Height": 480
+            },
+            "AudioDescriptions": [
+              {
+                "CodecSettings": {
+                  "Codec": "AAC",
+                  "AacSettings": {
+                    "Bitrate": 128000,
+                    "CodingMode": "CODING_MODE_2_0",
+                    "SampleRate": 48000
+                  }
+                }
+              }
+            ],
+            "OutputSettings": {
+              "HlsSettings": {}
+            },
+            "ContainerSettings": {
+              "Container": "M3U8",
+              "M3u8Settings": {}
+            },
+            "NameModifier": "_480p"
+          },
+          {
+            "VideoDescription": {
+              "CodecSettings": {
+                "Codec": "H_264",
+                "H264Settings": {
+                  "RateControlMode": "VBR",
+                  "QualityTuningLevel": "SINGLE_PASS",
+                  "Bitrate": 2800000,
+                  "MaxBitrate": 2996000
+                }
+              },
+              "Width": 1280,
+              "Height": 720
+            },
+            "AudioDescriptions": [
+              {
+                "CodecSettings": {
+                  "Codec": "AAC",
+                  "AacSettings": {
+                    "Bitrate": 128000,
+                    "CodingMode": "CODING_MODE_2_0",
+                    "SampleRate": 48000
+                  }
+                }
+              }
+            ],
+            "OutputSettings": {
+              "HlsSettings": {}
+            },
+            "ContainerSettings": {
+              "Container": "M3U8",
+              "M3u8Settings": {}
+            },
+            "NameModifier": "_720p"
+          },
+          {
+            "VideoDescription": {
+              "CodecSettings": {
+                "Codec": "H_264",
+                "H264Settings": {
+                  "RateControlMode": "VBR",
+                  "QualityTuningLevel": "SINGLE_PASS",
+                  "Bitrate": 5000000,
+                  "MaxBitrate": 5350000
+                }
+              },
+              "Width": 1920,
+              "Height": 1080
+            },
+            "AudioDescriptions": [
+              {
+                "CodecSettings": {
+                  "Codec": "AAC",
+                  "AacSettings": {
+                    "Bitrate": 192000,
+                    "CodingMode": "CODING_MODE_2_0",
+                    "SampleRate": 48000
+                  }
+                }
+              }
+            ],
+            "OutputSettings": {
+              "HlsSettings": {}
+            },
+            "ContainerSettings": {
+              "Container": "M3U8",
+              "M3u8Settings": {}
+            },
+            "NameModifier": "_1080p"
+          }
+        ],
+        "CustomName": "variants",
+        "OutputGroupSettings": {
+          "Type": "HLS_GROUP_SETTINGS",
+          "HlsGroupSettings": {
+            "ManifestDurationFormat": "INTEGER",
+            "SegmentLength": 3,
+            "TimedMetadataId3Period": 10,
+            "CaptionLanguageSetting": "OMIT",
+            "Destination": "__OUTPUTFILE__",
+            "TimedMetadataId3Frame": "PRIV",
+            "CodecSpecification": "RFC_4281",
+            "OutputSelection": "MANIFESTS_AND_SEGMENTS",
+            "ProgramDateTimePeriod": 600,
+            "MinSegmentLength": 0,
+            "DirectoryStructure": "SINGLE_DIRECTORY",
+            "ProgramDateTime": "EXCLUDE",
+            "SegmentControl": "SEGMENTED_FILES",
+            "ManifestCompression": "NONE",
+            "ClientCache": "ENABLED",
+            "StreamInfResolution": "INCLUDE",
+            "ImageBasedTrickPlay": "THUMBNAIL",
+            "Encryption": {
+              "EncryptionMethod": "AES128",
+              "Type": "STATIC_KEY",
+              "InitializationVectorInManifest": "INCLUDE",
+              "StaticKeyProvider": {
+                "StaticKeyValue": "__KEYVAL__",
+                "Url": "__KEYURL__"
+              },
+              "ConstantInitializationVector": "__IV__"
+            }
+          }
+        }
+      },
+
+      {
+        "Name": "File Group",
+        "OutputGroupSettings": {
+          "Type": "FILE_GROUP_SETTINGS",
+          "FileGroupSettings": {
+            "Destination": "__OUTPUTFILE__"
+          }
+        },
+        "Outputs": [
+          {
+            "VideoDescription": {
+              "CodecSettings": {
+                "Codec": "FRAME_CAPTURE",
+                "FrameCaptureSettings": {
+                  "Quality": 80,
+                  "FramerateNumerator": 1,
+                  "FramerateDenominator": __SCREENSHOT_TC__,
+                  "MaxCaptures": 20
+                }
+              },
+              "Width": 1280,
+              "Height": 720,
+              "ScalingBehavior": "DEFAULT",
+              "Sharpness": 50
+            },
+
+            "ContainerSettings": {
+              "Container": "RAW"
+            },
+            "NameModifier": "_$h$p",
+            "Extension": "jpg"
+          }
+        ],
+        "CustomName": "thumbnails"
+      },
+
+      {
+        "Name": "File Group",
+        "OutputGroupSettings": {
+          "Type": "FILE_GROUP_SETTINGS",
+          "FileGroupSettings": {
+            "Destination": "__OUTPUTFILE__"
+          }
+        },
+        "Outputs": [
+          {
+            "VideoDescription": {
+              "CodecSettings": {
+                "Codec": "H_264",
+                "H264Settings": {
+                  "RateControlMode": "CBR",
+                  "QualityTuningLevel": "SINGLE_PASS",
+                  "Bitrate": 800000
+                }
+              },
+              "Width": 256,
+              "Height": 144
+            },
+            "AudioDescriptions": [
+              {
+                "CodecSettings": {
+                  "Codec": "AAC",
+                  "AacSettings": {
+                    "Bitrate": 96000,
+                    "CodingMode": "CODING_MODE_2_0",
+                    "SampleRate": 48000
+                  }
+                }
+              }
+            ],
+            "ContainerSettings": {
+              "Container": "MP4",
+              "Mp4Settings": {}
+            },
+            "NameModifier": "144p",
+            "Extension": "mp4"
+          }
+        ],
+        "CustomName": "download"
+      }
+    ],
+    "AdAvailOffset": 0,
+    "Inputs": [
+      {
+        "AudioSelectors": {
+          "Audio Selector 1": {
+            "DefaultSelection": "DEFAULT"
+          }
+        },
+        "VideoSelector": {},
+        "TimecodeSource": "ZEROBASED",
+        "FileInput": "__INPUTFILE__"
+      }
+    ]
+  },
+  "AccelerationSettings": {
+    "Mode": "DISABLED"
+  },
+  "StatusUpdateInterval": "SECONDS_10",
+  "Priority": 0,
+  "HopDestinations": []
+}
