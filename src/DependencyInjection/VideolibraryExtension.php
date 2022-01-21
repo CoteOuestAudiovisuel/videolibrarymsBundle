@@ -16,7 +16,7 @@ class VideolibraryExtension extends Extension
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yaml');
 
-        $container->setParameter('videolibrary', $configs);
+        $container->setParameter('coa_videolibrary', $configs);
     }
 
 

@@ -8,7 +8,7 @@ class Configuration implements ConfigurationInterface
 {
     function getConfigTreeBuilder()
     {
-        $builder = new TreeBuilder('videolibrary');
+        $builder = new TreeBuilder('coa_videolibrary');
 
         $rootNode = $builder->getRootNode();
         $rootNode->children()
