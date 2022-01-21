@@ -13,25 +13,27 @@ class Configuration implements ConfigurationInterface
         $rootNode = $builder->getRootNode();
         $rootNode
             ->children()
-                ->scalarNode('my_var_string')
-                    ->isRequired()
-                ->end()
 
-                ->scalarNode('my_var_string_option')
-                    ->defaultValue('je suis optionnel')
-                ->end()
+            ->scalarNode('AWS_ACCESS_KEY_ID')
+            ->isRequired()
+            ->end()
 
-                ->arrayNode('my_array')
-                    ->isRequired()
-                    ->scalarPrototype()
-                    ->end()
-                ->end()
+            ->scalarNode('AWS_SECRET_ACCESS_KEY')
+            ->isRequired()
+            ->end()
 
-                ->integerNode('my_integer')
-                    ->isRequired()
-                    ->defaultValue(2)
-                    ->min(1)
-                ->end()
+            ->scalarNode('AWS_ACCOUNT_ENDPOINT')
+            ->isRequired()
+            ->end()
+
+            ->scalarNode('MEDIA_CONVERT_ROLE_ARN')
+            ->isRequired()
+            ->end()
+
+            ->scalarNode('CLOUD_FRONT_DISTRIB')
+            ->isRequired()
+            ->end()
+
             ->end();
 
         return $builder;

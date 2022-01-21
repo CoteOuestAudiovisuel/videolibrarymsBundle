@@ -18,6 +18,6 @@ class CoaVideolibraryExtension extends Extension
 
         $container->setParameter('coa_videolibrary', $configs);
 
-
+        dd($configs);
     }
 }
