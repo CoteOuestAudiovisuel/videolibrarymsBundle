@@ -12,11 +12,6 @@ class CoaVideolibraryBundle extends Bundle
     {
         parent::build($container);
         $ext = new CoaVideolibraryExtension([],$container);
-    }
 
-    public function getPath(): string
-    {
-        return \dirname(__DIR__);
     }
-
 }

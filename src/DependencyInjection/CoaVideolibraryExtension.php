@@ -17,5 +17,7 @@ class CoaVideolibraryExtension extends Extension
         $loader->load('services.yaml');
 
         $container->setParameter('coa_videolibrary', $configs);
+
+
     }
 }
