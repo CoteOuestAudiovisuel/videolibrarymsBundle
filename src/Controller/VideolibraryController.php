@@ -51,7 +51,7 @@ class VideolibraryController extends AbstractController
         $offset = $request->query->get("offset",0);
 
         $data = $rep->findBy([],["id"=>"DESC"],$limit,$offset);
-        $view = '@CoaVideolibrary/Resources/views/home/index.html.twig';
+        $view = '@CoaVideolibraryBundle/Resources/views/home/index.html.twig';
 
 
         if($request->isXmlHttpRequest()){
