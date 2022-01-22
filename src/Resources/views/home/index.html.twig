@@ -312,10 +312,15 @@
 {% endblock %}
 
 {% block javascripts %}
-    <script src="{{ asset('@CoaVideolibraryBundle/Resources/public/libs/venobox/venobox.min.js') }}"></script>
-    <script src="{{ asset('@CoaVideolibraryBundle/Resources/public/libs/jquery-circle-progress-1.2.2/circle-progress.min.js') }}"></script>
-    <script src="{{ asset('@CoaVideolibraryBundle/Resources/public/js/plugin.js') }}"></script>
-    <script src="{{ asset('@CoaVideolibraryBundle/Resources/public/js/index.js') }}"></script>
+
+    {% javascripts
+        '@CoaVideolibraryBundle/Resources/public/libs/venobox/venobox.min.js'
+        '@CoaVideolibraryBundle/Resources/public/libs/jquery-circle-progress-1.2.2/circle-progress.min.js'
+        '@CoaVideolibraryBundle/Resources/public/js/plugin.js'
+        '@CoaVideolibraryBundle/Resources/public/js/index.js'
+    %}
+        <script src="{{ asset_url }}"></script>
+    {% endjavascripts %}
 
     <script>
         window.addEventListener("load",function (e){
