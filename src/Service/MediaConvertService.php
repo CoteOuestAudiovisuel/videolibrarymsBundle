@@ -50,6 +50,7 @@ class MediaConvertService
             "submitTime"=>$submitTime,
             "duration"=>$duration,
             "duration_formated"=> gmdate('H:i:s', $duration),
+            "jobPercent"=>0
         ];
 
         if($status == "PROGRESSING"){
