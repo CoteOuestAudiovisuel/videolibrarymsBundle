@@ -30,7 +30,9 @@ class CoaVideolibraryExtension extends Extension implements PrependExtensionInte
     {
         $twigConfig = [];
         $twigConfig['paths'][__DIR__.'/../Resources/views'] = "coa_videolibrary";
+
         $twigConfig['paths'][__DIR__.'/../Resources/public'] = "coa_videolibrary.public";
+
         $container->prependExtensionConfig('twig', $twigConfig);
     }
 }
