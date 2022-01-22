@@ -1,5 +1,5 @@
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('@CoaVideolibraryBundle/Resources/public/libs/venobox/venobox.css') }}">
+    <link rel="stylesheet" href="{{ asset('bundles/coavideolibrary/libs/venobox/venobox.css') }}">
 
     <style>
 
@@ -313,14 +313,10 @@
 
 {% block javascripts %}
 
-    {% javascripts
-        '@CoaVideolibraryBundle/Resources/public/libs/venobox/venobox.min.js'
-        '@CoaVideolibraryBundle/Resources/public/libs/jquery-circle-progress-1.2.2/circle-progress.min.js'
-        '@CoaVideolibraryBundle/Resources/public/js/plugin.js'
-        '@CoaVideolibraryBundle/Resources/public/js/index.js'
-    %}
-        <script src="{{ asset_url }}"></script>
-    {% endjavascripts %}
+    <script src="{{ asset('bundles/coavideolibrary/libs/venobox/venobox.min.js') }}"></script>
+    <script src="{{ asset('bundles/coavideolibrary/libs/jquery-circle-progress-1.2.2/circle-progress.min.js') }}"></script>
+    <script src="{{ asset('bundles/coavideolibrary/js/plugin.js') }}"></script>
+    <script src="{{ asset('bundles/coavideolibrary/js/index.js') }}"></script>
 
     <script>
         window.addEventListener("load",function (e){
