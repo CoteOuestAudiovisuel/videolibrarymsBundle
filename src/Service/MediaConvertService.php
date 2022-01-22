@@ -246,7 +246,7 @@ class MediaConvertService
 
         $result = [];
         $s3 = new S3Client([
-            'region' => $this->region,
+            'region' => $this->container->getParameter("coa_videolibrary.aws_region"),
             'version' => 'latest',
         ]);
 
