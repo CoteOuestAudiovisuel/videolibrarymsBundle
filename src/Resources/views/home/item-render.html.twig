@@ -45,7 +45,11 @@
                 </strong>
 
                 <div>
-                    {{ video.author.firstname }} {{ video.author.lastname }}
+                    {% if video.author is defined %}
+                        {{ video.author.firstname }} {{ video.author.lastname }}
+                    {% else %}
+                        -
+                    {% endif %}
                 </div>
             </div>
 
