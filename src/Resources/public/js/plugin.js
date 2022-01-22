@@ -342,7 +342,7 @@ Aaz.VideoLibrary = (function(nsp){
                 //btn.attr("disabled","");
                 let code = modal_remove.attr("data-id");
                 let tr = $("tr[data-id="+code+"]");
-                $.post(`aws/${code}/delete`);
+                $.post(`${code}/delete`);
                 modal_remove.modal("hide");
                 tr.remove();
             }
@@ -366,7 +366,7 @@ Aaz.VideoLibrary = (function(nsp){
             modal.attr("data-id",id);
 
             if(modal.hasClass("modal-screenshot")){
-                $.get(`aws/${id}/screenshots`,function (html){
+                $.get(`${id}/screenshots`,function (html){
                     modal.find(".card-body > .loading").hide();
                     modal.find(".card-body .screenshot-container").html(html);
                 });
@@ -382,7 +382,7 @@ Aaz.VideoLibrary = (function(nsp){
 
             let code = modal_screenshot.attr("data-id");
             let tr = $("tr[data-id="+code+"]");
-            $.post(`aws/${code}/update-screenshot`, {"key":parent.attr("data-key")}, (data)=>{
+            $.post(`${code}/update-screenshot`, {"key":parent.attr("data-key")}, (data)=>{
                 if(data.status){
                     tr.find(".data-item-image").get()[0].style.backgroundImage = `url("${data.url}")`;
                 }
