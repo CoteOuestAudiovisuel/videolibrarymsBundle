@@ -1,11 +1,6 @@
-{% extends 'layouts/admin_base.html.twig' %}
-
-{% block title %}Programmes{% endblock %}
-
 {% block stylesheets %}
     {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('assets/libs/venobox/venobox.css') }}">
-
+    <link rel="stylesheet" href="{{ asset('libs/venobox/venobox.css') }}">
 
     <style>
 
@@ -162,7 +157,7 @@
         .data-item-image{
             width: 312px; /*280px;*/
             height: 176px; /*157.5px;*/
-            background: url('{{ asset("assets/admin/images/not-available.png") }}') no-repeat 0 0;
+            background: url('{{ asset("images/not-available.png") }}') no-repeat 0 0;
         }
 
         .video-sprites:not(.active){
@@ -181,13 +176,8 @@
 {% endblock %}
 
 {% block body %}
-    {% include 'admin/includes/_page_title.html.twig' with
-        {
-            'title': 'Video library',
-            'icon': 'pe-7s-monitor',
-            'subtitle': 'Gestion des videos et transcoding depuis Amazon MediaConvert et S3'} %}
-    {% include 'admin/includes/_flash.html.twig' %}
 
+    {% block body_title %}{% endblock %}
 
     <div class="main-card card mb-3" id="main-container">
 
@@ -207,7 +197,7 @@
             <table class="table">
 
                 <tbody>
-                    {% include 'admin/videolibrary/item-render.html.twig' %}
+                    {% include '@CoaVideolibrary/item-render.html.twig' %}
 
                     {% if  videos|length == 0 %}
                         <tr>
@@ -330,17 +320,14 @@
 {% block javascripts %}
     {{ parent() }}
 
-    <script src="{{ asset('assets/libs/venobox/venobox.min.js') }}"></script>
-    <script src="{{ asset('assets/libs/jquery-circle-progress-1.2.2/circle-progress.min.js') }}"></script>
-    <script src="{{ asset('assets/admin/js/aaz.js') }}"></script>
-    <script src="{{ asset('assets/admin/js/videolibrary/plugin.js') }}"></script>
-    <script src="{{ asset('assets/admin/js/videolibrary/index.js') }}"></script>
+    <script src="{{ asset('@CoaVideolibrary/libs/venobox/venobox.min.js') }}"></script>
+    <script src="{{ asset('@CoaVideolibrary/libs/jquery-circle-progress-1.2.2/circle-progress.min.js') }}"></script>
+    <script src="{{ asset('@CoaVideolibrary/js/videolibrary/plugin.js') }}"></script>
+    <script src="{{ asset('@CoaVideolibrary/js/videolibrary/index.js') }}"></script>
 
     <script>
         window.addEventListener("load",function (e){
             $('.venobox').venobox();
         });
-
-
     </script>
 {% endblock %}
