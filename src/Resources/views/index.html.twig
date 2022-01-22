@@ -1,6 +1,4 @@
 {% block stylesheets %}
-    {{ parent() }}
-
     <link rel="stylesheet" href="{{ asset('@coa_videolibrary.public/libs/venobox/venobox.css') }}">
 
     <style>
@@ -314,8 +312,6 @@
 {% endblock %}
 
 {% block javascripts %}
-    {{ parent() }}
-
     <script src="{{ asset('@coa_videolibrary.public/libs/venobox/venobox.min.js') }}"></script>
     <script src="{{ asset('@coa_videolibrary.public/libs/jquery-circle-progress-1.2.2/circle-progress.min.js') }}"></script>
     <script src="{{ asset('@coa_videolibrary.public/js/plugin.js') }}"></script>
