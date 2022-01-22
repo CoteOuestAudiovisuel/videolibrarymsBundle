@@ -185,7 +185,7 @@ class VideolibraryController extends AbstractController
             $em->flush();
 
             $result["status"] = true;
-            $result["url"] = $this->getParameter("coa_videolibrary")["CLOUD_FROUNT_DISTRIB"] . "/" . $key;
+            $result["url"] = $this->getParameter("coa_videolibrary.cloudfront_distrib") . "/" . $key;
         }
         return  $this->json($result);
     }
