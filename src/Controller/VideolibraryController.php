@@ -164,7 +164,7 @@ class VideolibraryController extends AbstractController
      */
     public function getScreenshot(Request $request, Video $video): Response
     {
-        $response = $this->render("screenshot-item-render.html.twig", ["video"=>$video]);
+        $response = $this->render("@CoaVideolibrary/home/screenshot-item-render.html.twig", ["video"=>$video]);
         $response->headers->set("Cache-Control","public, max-age=3600");
         return  $response;
     }
