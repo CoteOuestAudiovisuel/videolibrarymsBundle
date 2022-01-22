@@ -191,7 +191,7 @@ class MediaConvertService
 
         try {
             $client = $this->buildClient();
-            $payload = file_get_contents(__DIR__.'/../Resources/views/job.json');
+            $payload = file_get_contents(__DIR__ . '/../Resources/views/job.json');
 
             $keyval = random_bytes(16);
             $iv = random_bytes(16);

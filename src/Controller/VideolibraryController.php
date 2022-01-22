@@ -51,12 +51,12 @@ class VideolibraryController extends AbstractController
         $offset = $request->query->get("offset",0);
 
         $data = $rep->findBy([],["id"=>"DESC"],$limit,$offset);
-        $view = '@coa_videolibrary/index.html.twig';
+        $view = '@coa_videolibrary/home/index.html.twig';
 
 
         if($request->isXmlHttpRequest()){
             $acceptHeader = AcceptHeader::fromString($request->headers->get('Accept'));
-            $view = '@coa_videolibrary/item-render.html.twig';
+            $view = '@coa_videolibrary/home/item-render.html.twig';
         }
 
         return $this->render($view, [
@@ -263,7 +263,7 @@ class VideolibraryController extends AbstractController
                             @unlink($filename);
                         }
                     }
-                    $job["html"] = $this->renderView("@coa_videolibrary/item-render.html.twig",["videos"=>[$video]]);
+                    $job["html"] = $this->renderView("@coa_videolibrary/home/item-render.html.twig",["videos"=>[$video]]);
                 }
             }
             unset($job);
@@ -340,7 +340,7 @@ class VideolibraryController extends AbstractController
                 $video->setJobRef($job["data"]["id"]);
                 $video->setBucket($bucket);
                 $video->setJobPercent(0);
-                $result["html"] = $this->renderView("@coa_videolibrary/item-render.html.twig",["videos"=>[$video]]);
+                $result["html"] = $this->renderView("@coa_videolibrary/home/item-render.html.twig",["videos"=>[$video]]);
             }
 
             $em->persist($video);
