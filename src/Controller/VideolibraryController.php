@@ -33,7 +33,7 @@ class VideolibraryController extends AbstractController
     }
     private  function  getTargetDirectory(){
 
-        $basedir = $this->getParameter('coa_videolibrary.upload_folder');
+        $basedir = $this->getParameter('coa_videolibrary.upload_folder')."/coa_videolibrary";
         if(!file_exists($basedir)){
             mkdir($basedir);
         }
