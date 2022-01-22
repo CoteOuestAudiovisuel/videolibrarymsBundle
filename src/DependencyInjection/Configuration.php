@@ -49,6 +49,8 @@ class Configuration implements ConfigurationInterface
             ->scalarNode('keys_route')
             ->end()
 
+            ->scalarNode('upload_folder')
+            ->end()
 
 
             ->end();
