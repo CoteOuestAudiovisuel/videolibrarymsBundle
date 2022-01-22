@@ -333,11 +333,12 @@ class VideolibraryController extends AbstractController
                 $result['inputfile'] = $inputfile;
                 try {
                     $job = $mediaConvert->createJob($inputfile,$keyfilename,$keyurl,$bucket);
-
+                    $video->setJobRef($job["data"]["id"]);
+                    $video->setState("SUBMITTED");
                 }catch (\Exception $e){
                     throw $e;
                 }
-                $video->setJobRef($job["data"]["id"]);
+
                 $video->setBucket($bucket);
                 $video->setJobPercent(0);
                 $result["html"] = $this->renderView("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
