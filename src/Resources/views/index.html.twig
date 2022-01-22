@@ -1,6 +1,7 @@
 {% block stylesheets %}
     {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('libs/venobox/venobox.css') }}">
+
+    <link rel="stylesheet" href="{{ asset('@coa_videolibrary.public/libs/venobox/venobox.css') }}">
 
     <style>
 
@@ -177,8 +178,6 @@
 
 {% block body %}
 
-    {% block body_title %}{% endblock %}
-
     <div class="main-card card mb-3" id="main-container">
 
         <div class="card-header">
@@ -197,7 +196,7 @@
             <table class="table">
 
                 <tbody>
-                    {% include '@CoaVideolibrary/item-render.html.twig' %}
+                    {% include '@coa_videolibrary/item-render.html.twig' %}
 
                     {% if  videos|length == 0 %}
                         <tr>
@@ -213,11 +212,8 @@
                         </tr>
                     {% endif %}
                 </tbody>
-
             </table>
-
         </div>
-
 
         <div style="text-align:center" id="infinite-loading">
             <i  class="fa fa-spinner fa-spin fa-3x"></i>
@@ -320,10 +316,10 @@
 {% block javascripts %}
     {{ parent() }}
 
-    <script src="{{ asset('@CoaVideolibrary/libs/venobox/venobox.min.js') }}"></script>
-    <script src="{{ asset('@CoaVideolibrary/libs/jquery-circle-progress-1.2.2/circle-progress.min.js') }}"></script>
-    <script src="{{ asset('@CoaVideolibrary/js/videolibrary/plugin.js') }}"></script>
-    <script src="{{ asset('@CoaVideolibrary/js/videolibrary/index.js') }}"></script>
+    <script src="{{ asset('@coa_videolibrary.public/libs/venobox/venobox.min.js') }}"></script>
+    <script src="{{ asset('@coa_videolibrary.public/libs/jquery-circle-progress-1.2.2/circle-progress.min.js') }}"></script>
+    <script src="{{ asset('@coa_videolibrary.public/js/plugin.js') }}"></script>
+    <script src="{{ asset('@coa_videolibrary.public/js/index.js') }}"></script>
 
     <script>
         window.addEventListener("load",function (e){
