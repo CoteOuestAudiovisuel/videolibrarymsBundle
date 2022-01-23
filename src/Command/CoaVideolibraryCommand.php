@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Command;
+namespace Coa\VideolibraryBundle\Command;
 
 use Coa\VideolibraryBundle\Entity\Video;
 use Coa\VideolibraryBundle\Service\MediaConvertService;
