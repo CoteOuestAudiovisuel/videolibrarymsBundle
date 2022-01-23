@@ -15,8 +15,7 @@
         "doctrine/doctrine-bundle": "^2.4",
         "doctrine/doctrine-migrations-bundle": "^3.1",
         "doctrine/orm": "^2.9",
-        "ext-json": "*",
-        "symfony/console": "5.4.x-dev"
+        "ext-json": "*"
     },
     "license": "proprietary",
     "autoload": {
