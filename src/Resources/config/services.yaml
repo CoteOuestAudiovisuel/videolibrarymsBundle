@@ -33,4 +33,4 @@ services:
 
     Coa\VideolibraryBundle\Command\CoaVideolibraryCommand:
         tags:
-            - { name: console.command, command:'coa:videolibrary' }
+            - { name: console.command, command: 'coa:videolibrary' }
