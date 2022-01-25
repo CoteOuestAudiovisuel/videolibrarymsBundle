@@ -61,7 +61,7 @@
 
                 <div>
                     {% if video.duration %}
-                        {{ video.duration|sec_to_duration() }}
+                        {{ video.duration|coaSecToDuration() }}
                     {% else %}
                         -
                     {% endif %}
@@ -77,7 +77,7 @@
                     <strong class="">Taille du fichier</strong>
 
                     <div>
-                        {{ video.fileSize|bytes(2) }}
+                        {{ video.fileSize|coaToBytes(2) }}
                     </div>
 
 

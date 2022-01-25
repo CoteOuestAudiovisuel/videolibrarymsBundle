@@ -34,3 +34,11 @@ services:
     Coa\VideolibraryBundle\Command\CoaVideolibraryCommand:
         tags:
             - { name: console.command, command: 'coa:videolibrary' }
+
+    Coa\VideolibraryBundle\Extensions\Twig\FormatBytes:
+        tags:
+            - { name: twig.extension }
+
+    Coa\VideolibraryBundle\Extensions\Twig\FormatDuration:
+        tags:
+            - { name: twig.extension }
