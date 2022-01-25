@@ -50,6 +50,9 @@ class Configuration implements ConfigurationInterface
             ->isRequired()
             ->end()
 
+            ->scalarNode('hls_key_baseurl')
+            ->end()
+
             ->scalarNode('upload_folder')
             ->isRequired()
             ->end()

@@ -322,7 +322,10 @@ class VideolibraryController extends AbstractController
             if ($is_end) {
                 $result['status'] = "success";
                 $baseurl = $request->getScheme() . '://' . $request->getHttpHost() . $request->getBasePath();
-                $baseurl = "https://kiwi.loca.lt";
+                $key_baseurl = $this->getParameter("coa_videolibrary.hls_key_baseurl");
+                if($key_baseurl){
+                    $baseurl = $key_baseurl;
+                }
 
                 // c'est ici qu'on lance le processus de transcodage sur AWS
                 $inputfile = $baseurl.$packages->getUrl('/coa_videolibrary/'.$code.'.mp4');
