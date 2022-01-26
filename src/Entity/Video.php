@@ -110,6 +110,11 @@ class Video
     private $bucket;
 
     /**
+     * @ORM\Column(type="string", length=50, nullable=true)
+     */
+    private $region;
+
+    /**
      * @ORM\Column(type="smallint", nullable=true)
      */
     private $jobPercent;
@@ -331,6 +336,18 @@ class Video
     {
         $this->bucket = $bucket;
 
+        return $this;
+    }
+
+
+    public function getRegion(): ?string
+    {
+        return $this->region;
+    }
+
+    public function setRegion(?string $region): self
+    {
+        $this->region = $region;
         return $this;
     }
 

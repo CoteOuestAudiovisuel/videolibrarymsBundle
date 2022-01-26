@@ -11,7 +11,7 @@
 
             <div class="position-relative text-center">
 
-                <div class="data-item-image video-sprites" {% if video.state == 'COMPLETE' %} style="background-image: url('{{ cloudfront_baseurl }}/{{ video.poster }}')" {% endif %}></div>
+                <div class="data-item-image video-sprites" {% if video.state == 'COMPLETE' %} style="background-image: url('https://{{ video.bucket }}.s3.{{ video.region }}.amazonaws.com/{{ video.poster }}')" {% endif %}></div>
 
 {#                {% if video.state == 'COMPLETE' %}#}
 {#                    <img width="280" class="img-fluid data-item-image" src="{{ cloudfront_baseurl }}/{{ video.poster }}" alt="">#}
@@ -151,8 +151,8 @@
 
                     {% if video.state == "COMPLETE" %}
                         {% for v in video.screenshots|slice(1,5) %}
-                            <a class="venobox" data-gall="g-{{ video.code }}" href="{{ cloudfront_baseurl }}/{{ v }}">
-                                <img class="mx-0 px-0" width="70" src="{{ cloudfront_baseurl }}/{{ v }}" alt="">
+                            <a class="venobox" data-gall="g-{{ video.code }}" href="https://{{ video.bucket }}.s3.{{ video.region }}.amazonaws.com/{{ v }}">
+                                <img class="mx-0 px-0" width="70" src="https://{{ video.bucket }}.s3.{{ video.region }}.amazonaws.com/{{ v }}" alt="">
                             </a>
 
                         {% endfor %}
