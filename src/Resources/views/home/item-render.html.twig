@@ -165,7 +165,7 @@
                     {% endif %}
 
 
-                    {% if video.state == "PROGRESSING" or video.state == "pending" %}
+                    {% if video.state in  ["PROGRESSING","SUBMITTED"] %}
                         <div class="circle-progress" style="width: 100px;height: 100px" data-value="{{ video.jobPercent/100 }}">
                             <strong></strong>
                         </div>
