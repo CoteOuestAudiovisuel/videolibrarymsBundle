@@ -215,9 +215,9 @@ class VideolibraryController extends AbstractController
 
                 if(($video = $rep->findOneBy(["jobRef"=>$job["id"]]))) {
 
-//                    if(!in_array($video->getState(),["PROGRESSING","pending","SUBMITTED"])){
-//                        continue;
-//                    }
+                    if(!in_array($video->getState(),["PROGRESSING","pending","SUBMITTED"])){
+                        continue;
+                    }
 
                     if(isset($job["status"]) && $job["status"] != $video->getState()){
                         $video->setState($job["status"]);
