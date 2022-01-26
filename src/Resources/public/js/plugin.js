@@ -462,11 +462,12 @@ Aaz.VideoLibrary = (function(nsp){
                 let container = $("#main-container .card-body > table > tbody");
 
                 let elts = $(payload.html);
-                this.createCirclesProgression(elts.find(".circle-progress"));
                 container.prepend(elts);
+                this.createCirclesProgression(elts.find(".circle-progress"));
+                this.getJobsStatus();
             }
             else if(event.type === "upload_ended"){
-                this.getJobsStatus();
+                //this.getJobsStatus();
             }
         });
 
@@ -531,45 +532,47 @@ Aaz.VideoLibrary = (function(nsp){
     VideoLibrary.prototype.getJobsStatus = function (){
         if(this._getJobsStatusTimerid) clearTimeout(this._getJobsStatusTimerid);
 
-        $.ajax({
-            url:"getStatus",
-            method:"GET",
-            dataType: "json",
-            success:(data)=>{
+        this._getJobsStatusTimerid = setTimeout(()=>{
 
-                if(data.status){
-                    if(data.jobs && data.jobs.length){
-                        for (let job of data.jobs){
-                            let tr = $("tr[data-jobid="+job.id+"]");
+            $.ajax({
+                url:"getStatus",
+                method:"GET",
+                dataType: "json",
+                success:(data)=>{
 
-                            if (tr.length) {
-                                let circle = tr.find(".circle-progress");
-                                if (job.status.toLowerCase() === "progressing") {
-                                    if (job.jobPercent) {
-                                        let currentPhase = job.currentPhase;
-                                        tr.find(".data-item-state").text(job.status);
-                                        tr.find(".data-item-state").text(job.status);
+                    if(data.status){
+                        if(data.jobs && data.jobs.length){
+                            for (let job of data.jobs){
+                                let tr = $("tr[data-jobid="+job.id+"]");
 
-                                        circle.circleProgress("value", job.jobPercent / 100);
+                                if (tr.length) {
+                                    let circle = tr.find(".circle-progress");
+                                    if (job.status.toLowerCase() === "progressing") {
+                                        if (job.jobPercent) {
+                                            let currentPhase = job.currentPhase;
+                                            tr.find(".data-item-state").text(job.status);
+                                            tr.find(".data-item-state").text(job.status);
+
+                                            circle.circleProgress("value", job.jobPercent / 100);
+                                        }
+                                    } else if (job.status.toLowerCase() === "complete") {
+                                        circle.circleProgress("value", 1.0);
+                                        tr.replaceWith($(job.html));
+                                        //window.location.reload();
                                     }
-                                } else if (job.status.toLowerCase() === "complete") {
-                                    circle.circleProgress("value", 1.0);
-                                    tr.replaceWith($(job.html));
-                                    //window.location.reload();
                                 }
                             }
-                        }
 
-                        this._getJobsStatusTimerid = setTimeout(()=>{
                             this.getJobsStatus();
-                        },5000);
+                        }
                     }
-                }
-            },
-            error:(a,b,c)=>{
+                },
+                error:(a,b,c)=>{
 
-            }
-        });
+                }
+            });
+        },10000);
+
     }
     return VideoLibrary;
 })(Aaz);
