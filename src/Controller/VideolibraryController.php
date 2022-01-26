@@ -331,6 +331,7 @@ class VideolibraryController extends AbstractController
                 $inputfile = $baseurl.$packages->getUrl('/coa_videolibrary/'.$code.'.mp4');
                 $keyfilename = $code;
                 $bucket = $this->getParameter("coa_videolibrary.s3_bucket");
+                $region = $this->getParameter("coa_videolibrary.aws_region");
                 $keyurl = $baseurl.$this->getParameter("coa_videolibrary.keys_route") . "/" . $keyfilename;
 
                 $result['inputfile'] = $inputfile;
@@ -343,6 +344,7 @@ class VideolibraryController extends AbstractController
                 }
 
                 $video->setBucket($bucket);
+                $video->setRegion($region);
                 $video->setJobPercent(0);
                 $result["html"] = $this->renderView("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
             }
