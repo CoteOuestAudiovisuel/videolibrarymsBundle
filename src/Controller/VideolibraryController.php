@@ -215,13 +215,17 @@ class VideolibraryController extends AbstractController
 
                 if(($video = $rep->findOneBy(["jobRef"=>$job["id"]]))) {
 
-                    if(!in_array($video->getState(),["PROGRESSING","pending","SUBMITTED"])){
-                        continue;
+//                    if(!in_array($video->getState(),["PROGRESSING","pending","SUBMITTED"])){
+//                        continue;
+//                    }
+
+                    if(isset($job["status"]) && $job["status"] != $video->getState()){
+                        $video->setState($job["status"]);
                     }
 
-                    $video->setState($job["status"]);
-                    $video->setDuration($job["duration"]);
-
+                    if(isset($job["duration"]) && $job["duration"] != $video->getDuration()){
+                        $video->setDuration($job["duration"]);
+                    }
 
                     if($job["status"] == "COMPLETE") {
                         $video->setJobPercent(100);
@@ -230,16 +234,15 @@ class VideolibraryController extends AbstractController
                         $video->setJobPercent($job["jobPercent"]);
                     }
 
-
-                    if ($job["startTime"]) {
+                    if (isset($job["startTime"]) && $job["startTime"]) {
                         $video->setjobStartTime(new \DateTimeImmutable($job["startTime"]));
                     }
 
-                    if ($job["submitTime"]) {
+                    if (isset($job["submitTime"]) && $job["submitTime"]) {
                         $video->setjobSubmitTime(new \DateTimeImmutable($job["submitTime"]));
                     }
 
-                    if ($job["finishTime"]) {
+                    if (isset($job["finishTime"]) && $job["finishTime"]) {
                         $video->setjobFinishTime(new \DateTimeImmutable($job["finishTime"]));
                     }
 
