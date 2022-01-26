@@ -1,5 +1,5 @@
 {% for video in videos %}
-    <tr {% if video.state == "PROGRESSING" or video.state == "pending" %} data-jobid="{{ video.jobRef }}" {% endif %}  class="ui-state-default row-data data-item" data-id="{{ video.code }}">
+    <tr {% if video.state in ["PROGRESSING","SUBMITTED"] %} data-jobid="{{ video.jobRef }}" {% endif %}  class="ui-state-default row-data data-item" data-id="{{ video.code }}">
         <td style="vertical-align:top">
 
             {% if video.state != "COMPLETE" %}
