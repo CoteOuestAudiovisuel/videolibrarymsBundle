@@ -2,7 +2,6 @@
 
 namespace Coa\VideolibraryBundle\Controller;
 
-use Coa\VideolibraryBundle\Entity\Video;
 use Coa\VideolibraryBundle\Service\MediaConvertService;
 use Coa\VideolibraryBundle\Service\S3Service;
 
@@ -23,14 +22,17 @@ use Symfony\Component\Routing\Annotation\Route;
 class VideolibraryController extends AbstractController
 {
 
-    /**
-     * @Route("/test", name="test")
-     */
-    public function monIp(Request $request): Response
-    {
-        dd($this->getParameter('coa_videolibrary'));
-        return new Response("<h1>Titre du test</h1><div> ${$data}</div>");
+    private function getVideo(string $code){
+        $entity_class = $this->getParameter("coa_videolibrary.video_entity");
+        $em = $this->getDoctrine()->getManager();
+        $rep = $em->getRepository($entity_class);
+
+        if(!($video = $rep->findOneBy(["code"=>$code]))){
+            throw $this->createNotFoundException();
+        }
+        return $video;
     }
+
     private  function  getTargetDirectory(){
 
         $basedir = $this->getParameter('coa_videolibrary.upload_folder')."/coa_videolibrary";
@@ -39,13 +41,16 @@ class VideolibraryController extends AbstractController
         }
         return $basedir;
     }
+
+
     /**
      * @Route("/", name="index")
      */
     public function index(Request $request): Response
     {
+        $entity_class = $this->getParameter("coa_videolibrary.video_entity");
         $em = $this->getDoctrine()->getManager();
-        $rep = $em->getRepository(Video::class);
+        $rep = $em->getRepository($entity_class);
 
         $limit = $request->query->get("limit",20);
         $offset = $request->query->get("offset",0);
@@ -69,11 +74,9 @@ class VideolibraryController extends AbstractController
      *
      * affichage une entité video
      */
-    public function showVideo(Request $request, Video $video): Response
+    public function showVideo(Request $request, string $code): Response
     {
-        $em = $this->getDoctrine()->getManager();
-        $rep = $em->getRepository(Video::class);
-
+        $video = $this->getVideo($code);
         return $this->render("", [
             'video' => $video
         ]);
@@ -85,9 +88,10 @@ class VideolibraryController extends AbstractController
      *
      * supprimer une entité video
      */
-    public function deleteVideo(Request $request, S3Service $s3Service, Video $video): Response
+    public function deleteVideo(Request $request, S3Service $s3Service, string $code): Response
     {
         $em = $this->getDoctrine()->getManager();
+        $video = $this->getVideo($code);
         $result = ["status"=>false];
 
         $prefix = $video->getCode()."/";
@@ -130,9 +134,10 @@ class VideolibraryController extends AbstractController
      *
      * annulation d'un tâche de transcodage
      */
-    public function cancelJob(Request $request, MediaConvertService $mediaConvert, Video $video): Response
+    public function cancelJob(Request $request, MediaConvertService $mediaConvert, string $code): Response
     {
         $em = $this->getDoctrine()->getManager();
+        $video = $this->getVideo($code);
         $result = ["status"=>false];
         $jobId = $video->getJobRef();
 
@@ -162,8 +167,9 @@ class VideolibraryController extends AbstractController
      *
      * affichage des vignettes d'une video
      */
-    public function getScreenshot(Request $request, Video $video): Response
+    public function getScreenshot(Request $request, string $code): Response
     {
+        $video = $this->getVideo($code);
         $response = $this->render("@CoaVideolibrary/home/screenshot-item-render.html.twig", ["video"=>$video]);
         $response->headers->set("Cache-Control","public, max-age=3600");
         return  $response;
@@ -173,8 +179,9 @@ class VideolibraryController extends AbstractController
      * @Route("/{code}/update-screenshot", name="update_screenshot", methods={"POST"})
      * modification de la vignette d'une video
      */
-    public function setScreenshot(Request $request, Video $video): Response
+    public function setScreenshot(Request $request, string $code): Response
     {
+        $video = $this->getVideo($code);
         $result = ["status"=>false];
         $key = $request->request->get("key");
 
@@ -196,7 +203,7 @@ class VideolibraryController extends AbstractController
     public function getStatus(Request $request, MediaConvertService $mediaConvert): Response
     {
         $em = $this->getDoctrine()->getManager();
-        $rep = $em->getRepository(Video::class);
+        $rep = $em->getRepository($this->getParameter("coa_videolibrary.video_entity"));
         $status = $request->query->get("status","PROGRESSING");
         $maxResults = $request->query->get("maxResults",5);
         $result = $mediaConvert->listJobs($maxResults,'DESCENDING', null);
@@ -280,7 +287,8 @@ class VideolibraryController extends AbstractController
     public function upload(Request $request, MediaConvertService $mediaConvert, Packages $packages): Response
     {
         $em = $this->getDoctrine()->getManager();
-        $rep = $em->getRepository(Video::class);
+        $video_entity = $this->getParameter("coa_videolibrary.video_entity");
+        $rep = $em->getRepository($video_entity);
 
         $targetDirectory = $this->getTargetDirectory();
 
@@ -354,7 +362,6 @@ class VideolibraryController extends AbstractController
 
             $em->persist($video);
             $em->flush();
-
         }
         else{
 
@@ -368,7 +375,7 @@ class VideolibraryController extends AbstractController
             $filepath = sprintf($targetDirectory . "/%s.mp4", $code);
             file_put_contents($filepath, $chunk, FILE_APPEND);
 
-            $video = new Video();
+            $video = new $video_entity();
             $video->setCode($code);
             $video->setOriginalFilename($originalFilename);
             $video->setFileSize($file_length);

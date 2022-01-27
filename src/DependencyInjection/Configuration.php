@@ -34,10 +34,6 @@ class Configuration implements ConfigurationInterface
             ->isRequired()
             ->end()
 
-            ->scalarNode('cloudfront_distrib')
-            ->isRequired()
-            ->end()
-
             ->scalarNode('s3_bucket')
             ->isRequired()
             ->end()
@@ -57,6 +53,9 @@ class Configuration implements ConfigurationInterface
             ->isRequired()
             ->end()
 
+            ->scalarNode('video_entity')
+            ->isRequired()
+            ->end()
 
             ->end();
 

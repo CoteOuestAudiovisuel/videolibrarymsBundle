@@ -5,19 +5,13 @@ namespace Coa\VideolibraryBundle\Entity;
 use App\Entity\User;
 use Coa\VideolibraryBundle\Repository\VideoRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\MappedSuperclass;
 
 /**
- * @ORM\Entity(repositoryClass=VideoRepository::class)
+ * @MappedSuperclass
  */
-class Video
+abstract class Video
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private $id;
-
     /**
      * @ORM\Column(type="string", length=64)
      */
@@ -119,10 +113,6 @@ class Video
      */
     private $jobPercent;
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
 
     public function getCode(): ?string
     {
