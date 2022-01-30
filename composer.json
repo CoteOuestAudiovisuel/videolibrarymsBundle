@@ -2,7 +2,7 @@
     "name": "coa/videolibrary-bundle",
     "description": "permet de gerer les videos d'une plateforme vod sur AWS",
     "type": "symfony-bundle",
-    "version": "v1.1.0",
+    "version": "v0.0.5",
     "minimum-stability": "dev",
     "prefer-stable": false,
     "require": {
@@ -11,7 +11,6 @@
         "symfony/asset": "5.3.*",
         "sensio/framework-extra-bundle": "^6.2",
         "aws/aws-sdk-php": "^3.209",
-
         "doctrine/annotations": "^1.0",
         "doctrine/doctrine-bundle": "^2.4",
         "doctrine/doctrine-migrations-bundle": "^3.1",
