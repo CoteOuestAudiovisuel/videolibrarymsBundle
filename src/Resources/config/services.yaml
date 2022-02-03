@@ -32,9 +32,15 @@ services:
             - '../../DependencyInjection/'
             - '../../Entity/'
 
-    Coa\VideolibraryBundle\Command\CoaVideolibraryCommand:
+    Coa\VideolibraryBundle\Command\CoaVideolibraryTranscodeCommand:
         tags:
-            - { name: console.command, command: 'coa:videolibrary' }
+            - { name: console.command, command: 'coa:videolibrary:transcode' }
+
+    Coa\VideolibraryBundle\Command\CoaVideolibraryFtpCommand:
+        tags:
+            - { name: console.command, command: 'coa:videolibrary:ftp' }
+
+
 
     Coa\VideolibraryBundle\Extensions\Twig\FormatBytes:
         tags:

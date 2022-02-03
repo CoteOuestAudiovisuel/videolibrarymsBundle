@@ -31,8 +31,6 @@ Aaz.VideoSprites = (function(nsp){
                 let spriteUrl = item.baseUrl + "/" + "Thumbnail_00000000"+item.thumbnail+".jpg";
                 item.el.get()[0].style.backgroundImage = 'url("'+spriteUrl+'")';
             }
-            console.log("x="+item.x+", y="+item.y)
-
             item.el.css("background-position", `-${item.x*312}px -${item.y*176}px`);
             item.x++;
 
