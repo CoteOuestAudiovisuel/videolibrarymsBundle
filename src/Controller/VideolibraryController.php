@@ -205,7 +205,7 @@ class VideolibraryController extends AbstractController
         $em = $this->getDoctrine()->getManager();
         $rep = $em->getRepository($this->getParameter("coa_videolibrary.video_entity"));
         $status = $request->query->get("status","PROGRESSING");
-        $maxResults = $request->query->get("maxResults",5);
+        $maxResults = $request->query->get("maxResults",20);
         $result = $mediaConvert->listJobs($maxResults,'DESCENDING', null);
 
         $basedir = $this->getTargetDirectory();
