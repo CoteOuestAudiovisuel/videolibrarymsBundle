@@ -537,32 +537,25 @@ Aaz.VideoLibrary = (function(nsp){
                 method:"GET",
                 dataType: "json",
                 success:(data)=>{
+                    if(data.payload && data.payload.length){
+                        for (let job of data.payload){
+                            let tr = $("tr[data-jobid="+job.id+"]");
 
-                    if(data.status){
-                        if(data.jobs && data.jobs.length){
-                            for (let job of data.jobs){
-                                let tr = $("tr[data-jobid="+job.id+"]");
-
-                                if (tr.length) {
-                                    let circle = tr.find(".circle-progress");
-                                    if (job.status.toLowerCase() === "progressing") {
-                                        if (job.jobPercent) {
-                                            let currentPhase = job.currentPhase;
-                                            tr.find(".data-item-state").text(job.status);
-                                            tr.find(".data-item-state").text(job.status);
-
-                                            circle.circleProgress("value", job.jobPercent / 100);
-                                        }
-                                    } else if (job.status.toLowerCase() === "complete") {
-                                        circle.circleProgress("value", 1.0);
-                                        tr.replaceWith($(job.html));
-                                        //window.location.reload();
+                            if (tr.length) {
+                                let circle = tr.find(".circle-progress");
+                                if (job.status.toLowerCase() === "progressing") {
+                                    if (job.jobPercent) {
+                                        tr.find(".data-item-state").text(job.status);
+                                        circle.circleProgress("value", job.jobPercent / 100);
                                     }
+                                } else if (job.status.toLowerCase() === "complete") {
+                                    circle.circleProgress("value", 1.0);
+                                    tr.replaceWith($(job.html));
+                                    //window.location.reload();
                                 }
                             }
-
-                            this.getJobsStatus();
                         }
+                        this.getJobsStatus();
                     }
                 },
                 error:(a,b,c)=>{

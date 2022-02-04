@@ -125,7 +125,7 @@ class MediaConvertService
     public function listJobs(int $maxResults = 20, string $orderBy = "DESCENDING", ?string $status = "SUBMITTED", string $nextToken=null):array{
 
         $client = $this->buildClient();
-        $result = ["status"=>false];
+        $result = ["payload"=>[]];
 
         $params = [
             'MaxResults' => $maxResults,
@@ -146,11 +146,10 @@ class MediaConvertService
             $jobs = $client->listJobs($params);
             //dd($jobs);
             //$jobs = $jobs->toArray();
-            $result["status"] = true;
             $result["nextToken"] = $jobs["NextToken"];
 
             foreach ($jobs["Jobs"] as $job){
-                $result["jobs"][] = $this->formatJob($job);
+                $result["payload"][] = $this->formatJob($job);
             }
         } catch (AwsException $e) {
             $result["error"] = $e->getMessage();
@@ -243,7 +242,7 @@ class MediaConvertService
      * @return array
      *
      */
-    public function getRessources(string $bucket,string $prefix){
+    public function getResources(string $bucket,string $prefix){
 
         $result = [];
         $s3 = new S3Client([

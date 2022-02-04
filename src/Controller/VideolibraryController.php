@@ -2,6 +2,7 @@
 
 namespace Coa\VideolibraryBundle\Controller;
 
+use Coa\VideolibraryBundle\Service\CoaVideolibraryService;
 use Coa\VideolibraryBundle\Service\MediaConvertService;
 use Coa\VideolibraryBundle\Service\S3Service;
 
@@ -200,83 +201,31 @@ class VideolibraryController extends AbstractController
     /**
      * @Route("/getStatus", name="getstatus")
      */
-    public function getStatus(Request $request, MediaConvertService $mediaConvert): Response
+    public function getStatus(Request $request, MediaConvertService $mediaConvert, CoaVideolibraryService $coaVideolibrary): Response
     {
         $em = $this->getDoctrine()->getManager();
         $rep = $em->getRepository($this->getParameter("coa_videolibrary.video_entity"));
-        $status = $request->query->get("status","PROGRESSING");
         $maxResults = $request->query->get("maxResults",20);
-        $result = $mediaConvert->listJobs($maxResults,'DESCENDING', null);
+        $result = [];
 
-        $basedir = $this->getTargetDirectory();
-
-
-        if($result["status"] && isset($result["jobs"])){
-            foreach ($result["jobs"] as &$job){
-
-                if($job["status"] == "COMPLETE"){
-                    $bucket = $job["bucket"];
-                    $prefix = $job["prefix"];
-                    $job["ressources"] = $mediaConvert->getRessources($bucket,$prefix);
-                }
-
-                if(($video = $rep->findOneBy(["jobRef"=>$job["id"]]))) {
-
-                    if(!in_array($video->getState(),["PROGRESSING","pending","SUBMITTED"])){
-                        continue;
-                    }
-
-                    if(isset($job["status"]) && $job["status"] != $video->getState()){
-                        $video->setState($job["status"]);
-                    }
-
-                    if(isset($job["duration"]) && $job["duration"] != $video->getDuration()){
-                        $video->setDuration($job["duration"]);
-                    }
-
-                    if($job["status"] == "COMPLETE") {
-                        $video->setJobPercent(100);
-                    }
-                    else{
-                        $video->setJobPercent($job["jobPercent"]);
-                    }
-
-                    if (isset($job["startTime"]) && $job["startTime"]) {
-                        $video->setjobStartTime(new \DateTimeImmutable($job["startTime"]));
-                    }
-
-                    if (isset($job["submitTime"]) && $job["submitTime"]) {
-                        $video->setjobSubmitTime(new \DateTimeImmutable($job["submitTime"]));
-                    }
-
-                    if (isset($job["finishTime"]) && $job["finishTime"]) {
-                        $video->setjobFinishTime(new \DateTimeImmutable($job["finishTime"]));
-                    }
-
-                    if (isset($job["ressources"]) && count($job["ressources"])) {
-                        $video->setPoster(array_slice($job["ressources"]["thumnails"],1)[0]);
-                        $video->setScreenshots($job["ressources"]["thumnails"]);
-
-                        $video->setWebvtt($job["ressources"]["webvtt"]);
-                        $video->setManifest($job["ressources"]["manifests"][0]);
-                        $video->setVariants(array_slice($job["ressources"]["manifests"], 1));
-                    }
-
-                    $em->persist($video);
-                    $em->flush();
-
-                    if(in_array($job["status"],["COMPLETE","ERROR","CANCELED"])){
-                        // supprimer les fichiers source mp4
-                        $filename = $basedir . "/" .$video->getCode().".mp4";
-                        // fichier video a supprimer
-                        if(file_exists($filename)){
-                            @unlink($filename);
-                        }
-                    }
-                    $job["html"] = $this->renderView("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
-                }
-            }
-            unset($job);
+        if($_ENV["APP_ENV"] == "dev"){
+            $result = $coaVideolibrary->getStatus($maxResults);
+        }
+        else{
+            $videos = $rep->findBy([],["id"=>"DESC"],$maxResults);
+            $result["payload"] = array_map(function ($el){
+                $item = [
+                    "id"=>$el->getJobRef(),
+                    "status"=>$el->getStatus(),
+                    "startTime"=>$el->getStartTime(),
+                    "finishTime"=>$el->getFinishTime(),
+                    "submitTime"=>$el->getSubmitTime(),
+                    "duration"=>$el->getDuration(),
+                    "duration_formated"=> gmdate('H:i:s', $el->getDuration()),
+                    "jobPercent"=>$el->getJobPercent(),
+                    "html"=>$this->renderView("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$el]])
+                ];
+            },$videos);
         }
         return  $this->json($result);
     }
@@ -284,7 +233,8 @@ class VideolibraryController extends AbstractController
     /**
      * @Route("/upload", name="upload")
      */
-    public function upload(Request $request, MediaConvertService $mediaConvert, Packages $packages): Response
+    public function upload(Request $request, MediaConvertService $mediaConvert,
+                           Packages $packages, CoaVideolibraryService $coaVideolibrary): Response
     {
         $em = $this->getDoctrine()->getManager();
         $video_entity = $this->getParameter("coa_videolibrary.video_entity");
@@ -337,26 +287,7 @@ class VideolibraryController extends AbstractController
                 if($key_baseurl){
                     $baseurl = $key_baseurl;
                 }
-
-                // c'est ici qu'on lance le processus de transcodage sur AWS
-                $inputfile = $baseurl.$packages->getUrl('/coa_videolibrary/'.$code.'.mp4');
-                $keyfilename = $code;
-                $bucket = $this->getParameter("coa_videolibrary.s3_bucket");
-                $region = $this->getParameter("coa_videolibrary.aws_region");
-                $keyurl = $baseurl.$this->getParameter("coa_videolibrary.keys_route") . "/" . $keyfilename;
-
-                $result['inputfile'] = $inputfile;
-                try {
-                    $job = $mediaConvert->createJob($inputfile,$keyfilename,$keyurl,$bucket);
-                    $video->setJobRef($job["data"]["id"]);
-                    $video->setState("SUBMITTED");
-                }catch (\Exception $e){
-                    throw $e;
-                }
-
-                $video->setBucket($bucket);
-                $video->setRegion($region);
-                $video->setJobPercent(0);
+                $coaVideolibrary->transcode($video,$baseurl,$key_baseurl);
                 $result["html"] = $this->renderView("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
             }
 

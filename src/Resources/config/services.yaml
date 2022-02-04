@@ -40,6 +40,10 @@ services:
         tags:
             - { name: console.command, command: 'coa:videolibrary:ftp' }
 
+    Coa\VideolibraryBundle\Command\CoaVideolibraryStatusCommand:
+        tags:
+            - { name: console.command, command: 'coa:videolibrary:status' }
+
 
 
     Coa\VideolibraryBundle\Extensions\Twig\FormatBytes:
