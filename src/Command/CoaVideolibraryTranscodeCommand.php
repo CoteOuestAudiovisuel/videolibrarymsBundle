@@ -50,13 +50,13 @@ class CoaVideolibraryTranscodeCommand extends Command
 
         if(null == $video_baseurl){
             do{
-                $video_baseurl = trim($io->ask("video_baseurl", "https://mynina.tv"));
+                $video_baseurl = trim($io->ask("video_baseurl", "https://kiwi.ci"));
             }while(strlen($video_baseurl) == 0);
         }
 
         if(null == $hls_key_baseurl){
             do{
-                $hls_key_baseurl = trim($io->ask("hls_key_baseurl", "https://mynina.tv"));
+                $hls_key_baseurl = trim($io->ask("hls_key_baseurl", "https://kiwi.ci"));
             }while(strlen($hls_key_baseurl) ==0);
         }
 

@@ -15,46 +15,46 @@ class Configuration implements ConfigurationInterface
             ->children()
 
             ->scalarNode('aws_access_key_id')
-            ->isRequired()
+            //->isRequired()
             ->end()
 
             ->scalarNode('aws_secret_access_key')
-            ->isRequired()
+            //->isRequired()
             ->end()
 
             ->scalarNode('aws_region')
-            ->isRequired()
+            //->isRequired()
             ->end()
 
             ->scalarNode('mediaconvert_endpoint')
-            ->isRequired()
+            //->isRequired()
             ->end()
 
             ->scalarNode('mediaconvert_role_arn')
-            ->isRequired()
+            //->isRequired()
             ->end()
 
             ->scalarNode('s3_bucket')
-            ->isRequired()
+            //->isRequired()
             ->end()
 
             ->scalarNode('keys_folder')
-            ->isRequired()
+            //->isRequired()
             ->end()
 
             ->scalarNode('keys_route')
-            ->isRequired()
+            //->isRequired()
             ->end()
 
             ->scalarNode('hls_key_baseurl')
             ->end()
 
             ->scalarNode('upload_folder')
-            ->isRequired()
+            //->isRequired()
             ->end()
 
             ->scalarNode('video_entity')
-            ->isRequired()
+            //->isRequired()
             ->end()
 
             ->end();

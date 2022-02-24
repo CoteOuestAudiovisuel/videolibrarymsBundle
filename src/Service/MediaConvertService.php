@@ -198,8 +198,9 @@ class MediaConvertService
             $timecodes = [20,30,45,50,60,90];
             $timecode = $timecodes[random_int(0,count($timecodes)-1)];
             $outputfile = "s3://$bucket/$keyfilename/manifest";
+            $keys_folder = $this->container->getParameter('kernel.project_dir')."/coa_videolibrary_keys";
 
-            $keys_folder = $this->container->getParameter("coa_videolibrary.keys_folder");
+
             if(!file_exists($keys_folder)){
                 mkdir($keys_folder);
             }

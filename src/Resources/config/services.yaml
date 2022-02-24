@@ -11,10 +11,8 @@ parameters:
         mediaconvert_endpoint: ~
         mediaconvert_role_arn: ~
         s3_bucket: ~
-        keys_folder: '%kernel.project_dir%/keys'
         keys_route: '/keys'
         hls_key_baseurl: ~
-        upload_folder: '%kernel.project_dir%/public/coa_videolibrary'
         video_entity: ~
 
 
@@ -53,3 +51,4 @@ services:
     Coa\VideolibraryBundle\Extensions\Twig\FormatDuration:
         tags:
             - { name: twig.extension }
+

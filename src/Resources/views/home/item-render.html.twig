@@ -10,16 +10,7 @@
             {% endif %}
 
             <div class="position-relative text-center">
-
-                <div class="data-item-image video-sprites" {% if video.state == 'COMPLETE' %} style="background-image: url('https://{{ video.bucket }}.s3.{{ video.region }}.amazonaws.com/{{ video.poster }}')" {% endif %}></div>
-
-{#                {% if video.state == 'COMPLETE' %}#}
-{#                    <img width="280" class="img-fluid data-item-image" src="{{ cloudfront_baseurl }}/{{ video.poster }}" alt="">#}
-{#                    <a data-vbtype="iframe" href="{{ path("player_home_video", {'code':video.code}) }}" class="venobox video-icon video-popup-control" style="text-decoration: none"></a>#}
-{#                {% else %}#}
-{#                    <img width="280" class="img-fluid data-item-image" src="{{ asset('assets/admin/images/not-available.png') }}" alt="">#}
-{#                {% endif %}#}
-
+                <div class="data-item-image video-sprites" {% if video.state == 'COMPLETE' %} style="background-image: url('{{ video.poster|coaBucketBasename(video) }}')" {% endif %}></div>
             </div>
 
             <div>
@@ -151,8 +142,8 @@
 
                     {% if video.state == "COMPLETE" %}
                         {% for v in video.screenshots|slice(1,5) %}
-                            <a class="venobox" data-gall="g-{{ video.code }}" href="https://{{ video.bucket }}.s3.{{ video.region }}.amazonaws.com/{{ v }}">
-                                <img class="mx-0 px-0" width="70" src="https://{{ video.bucket }}.s3.{{ video.region }}.amazonaws.com/{{ v }}" alt="">
+                            <a class="venobox" data-gall="g-{{ video.code }}" href="{{ v|coaBucketBasename(video) }}">
+                                <img class="mx-0 px-0" width="70" src="{{ v|coaBucketBasename(video) }}" alt="">
                             </a>
 
                         {% endfor %}

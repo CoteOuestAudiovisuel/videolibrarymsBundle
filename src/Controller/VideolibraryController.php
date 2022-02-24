@@ -2,6 +2,7 @@
 
 namespace Coa\VideolibraryBundle\Controller;
 
+use Coa\VideolibraryBundle\Extensions\Twig\AwsS3Url;
 use Coa\VideolibraryBundle\Service\CoaVideolibraryService;
 use Coa\VideolibraryBundle\Service\MediaConvertService;
 use Coa\VideolibraryBundle\Service\S3Service;
@@ -13,6 +14,7 @@ use Symfony\Component\HttpFoundation\AcceptHeader;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+
 
 /**
  * @Route("/videolibrary", name="coa_videolibrary_")
@@ -35,8 +37,7 @@ class VideolibraryController extends AbstractController
     }
 
     private  function  getTargetDirectory(){
-
-        $basedir = $this->getParameter('coa_videolibrary.upload_folder')."/coa_videolibrary";
+        $basedir = $this->getParameter('kernel.project_dir')."/public/coa_videolibrary_upload";
         if(!file_exists($basedir)){
             mkdir($basedir);
         }
@@ -180,7 +181,7 @@ class VideolibraryController extends AbstractController
      * @Route("/{code}/update-screenshot", name="update_screenshot", methods={"POST"})
      * modification de la vignette d'une video
      */
-    public function setScreenshot(Request $request, string $code): Response
+    public function setScreenshot(Request $request, AwsS3Url $awsS3Url, string $code): Response
     {
         $video = $this->getVideo($code);
         $result = ["status"=>false];
@@ -191,9 +192,8 @@ class VideolibraryController extends AbstractController
             $video->setPoster($key);
             $em->persist($video);
             $em->flush();
-
             $result["status"] = true;
-            $result["url"] = $this->getParameter("coa_videolibrary.cloudfront_distrib") . "/" . $key;
+            $result["url"] = $awsS3Url->urlBasename($key,$video);
         }
         return  $this->json($result);
     }
@@ -284,6 +284,7 @@ class VideolibraryController extends AbstractController
                 $result['status'] = "success";
                 $baseurl = $request->getScheme() . '://' . $request->getHttpHost() . $request->getBasePath();
                 $key_baseurl = $this->getParameter("coa_videolibrary.hls_key_baseurl");
+
                 if($key_baseurl){
                     $baseurl = $key_baseurl;
                 }

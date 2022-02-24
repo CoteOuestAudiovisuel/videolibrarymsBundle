@@ -90,7 +90,7 @@ Aaz.VideoLibrary = (function(nsp){
         this._getJobsStatusTimerid = null;
         this.currentFile = null;
         this.xhr = null;
-    };
+    }
 
     Object.assign(VideoLibrary.prototype,nsp.EventDispatcher.prototype);
 
@@ -462,10 +462,10 @@ Aaz.VideoLibrary = (function(nsp){
                 let elts = $(payload.html);
                 container.prepend(elts);
                 this.createCirclesProgression(elts.find(".circle-progress"));
-                this.getJobsStatus();
+                //this.getJobsStatus();
             }
             else if(event.type === "upload_ended"){
-                //this.getJobsStatus();
+                this.getJobsStatus();
             }
         });
 
@@ -514,7 +514,6 @@ Aaz.VideoLibrary = (function(nsp){
         return this;
     }
 
-
     VideoLibrary.prototype.createCirclesProgression = function (items){
         items.circleProgress({
             size: 100,
@@ -525,7 +524,6 @@ Aaz.VideoLibrary = (function(nsp){
             $(this).find('strong').html(Math.round(stepValue*100) + '<i style="font-size: 1rem">%</i>');
         });
     }
-
 
     VideoLibrary.prototype.getJobsStatus = function (){
         if(this._getJobsStatusTimerid) clearTimeout(this._getJobsStatusTimerid);

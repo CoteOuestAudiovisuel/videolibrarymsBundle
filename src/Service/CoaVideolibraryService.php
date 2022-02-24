@@ -26,13 +26,13 @@ class CoaVideolibraryService
     }
 
     public function transcode(Video $video,string $video_baseurl, string $hls_key_baseurl){
-        $videosPath = $this->container->getParameter('kernel.project_dir') . "/public/coa_videolibrary";
+        $videosPath = $this->container->getParameter('kernel.project_dir') . "/public/coa_videolibrary_upload";
 
         $code = $video->getCode();
         $input_path = $videosPath."/".$code.'.mp4';
         if(!file_exists($input_path)) return;
 
-        $inputfile = $video_baseurl.$this->packages->getUrl('/coa_videolibrary/'.$code.'.mp4');
+        $inputfile = $video_baseurl.$this->packages->getUrl('/coa_videolibrary_upload/'.$code.'.mp4');
         $keyfilename = $code;
         $bucket = $this->container->getParameter("coa_videolibrary.s3_bucket");
         $region = $this->container->getParameter("coa_videolibrary.aws_region");
@@ -61,7 +61,7 @@ class CoaVideolibraryService
         $video_entity = $this->container->getParameter('coa_videolibrary.video_entity');
         $rep = $this->em->getRepository($video_entity);
         $ftpPath = $this->container->getParameter('kernel.project_dir') . "/coa_videolibrary_ftp";
-        $destPath = $this->container->getParameter('kernel.project_dir') . "/public/coa_videolibrary";
+        $destPath = $this->container->getParameter('kernel.project_dir') . "/public/coa_videolibrary_upload";
 
         if(!file_exists($ftpPath)){
             mkdir($ftpPath);
@@ -98,7 +98,7 @@ class CoaVideolibraryService
 
         $video_entity = $this->container->getParameter('coa_videolibrary.video_entity');
         $rep = $this->em->getRepository($video_entity);
-        $basedir = $this->container->getParameter('kernel.project_dir') . "/public/coa_videolibrary";
+        $basedir = $this->container->getParameter('kernel.project_dir') . "/public/coa_videolibrary_upload";
         $result = $this->mediaConvert->listJobs($maxResults,'DESCENDING', null);
 
         if(isset($result["payload"])){
