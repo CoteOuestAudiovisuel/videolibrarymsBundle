@@ -462,10 +462,10 @@ Aaz.VideoLibrary = (function(nsp){
                 let elts = $(payload.html);
                 container.prepend(elts);
                 this.createCirclesProgression(elts.find(".circle-progress"));
-                //this.getJobsStatus();
+                this.getJobsStatus();
             }
             else if(event.type === "upload_ended"){
-                this.getJobsStatus();
+                //this.getJobsStatus();
             }
         });
 
