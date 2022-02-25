@@ -35,11 +35,21 @@ class MediaConvertService
 
         $jobid = $job["Id"];
         $status = $job["Status"];
-        $timing = $job["Timing"];
-        $finishTime = @$timing["FinishTime"];
-        $startTime = @$timing["StartTime"];
-        $submitTime = @$timing["SubmitTime"];
-        $duration = @$job["OutputGroupDetails"][0]["OutputDetails"][0]["DurationInMs"]/1000;
+        $finishTime = null;
+        $startTime = null;
+        $submitTime = null;
+        $duration = 0;
+
+        if(isset($job["OutputGroupDetails"])){
+            $duration = $job["OutputGroupDetails"][0]["OutputDetails"][0]["DurationInMs"]/1000;
+        }
+
+        if(isset($job["Timing"])){
+            $timing = $job["Timing"];
+            $finishTime = @$timing["FinishTime"];
+            $startTime = @$timing["StartTime"];
+            $submitTime = @$timing["SubmitTime"];
+        }
 
 
         $item = [
@@ -54,11 +64,15 @@ class MediaConvertService
         ];
 
         if($status == "PROGRESSING"){
-            $jobPercent = intval(@$job["JobPercentComplete"]);
-            $currentPhase = @$job["CurrentPhase"];
+            if(isset($job["JobPercentComplete"])){
+                $jobPercent = intval(@$job["JobPercentComplete"]);
+                $item["jobPercent"] = $jobPercent;
+            }
 
-            $item["jobPercent"] = $jobPercent;
-            $item["currentPhase"] = $currentPhase;
+            if(isset($job["CurrentPhase"])){
+                $currentPhase = @$job["CurrentPhase"];
+                $item["currentPhase"] = $currentPhase;
+            }
         }
         else if($status == "ERROR"){
             $item["errorCode"] = $job["ErrorCode"];
