@@ -68,14 +68,16 @@ class CoaVideolibraryExtension extends Extension implements PrependExtensionInte
             $keys_in_gitingore = false;
             $upload_in_gitingore = false;
             $ftp_in_gitingore = false;
+
             foreach ($ignoresData as $item){
-                if(false !== stripos($keys_dirname,$item)){
+                $item = trim($item);
+                if(false !== stripos($item,$keys_dirname)){
                     $keys_in_gitingore = true;
                 }
-                else if(false !== stripos($upload_dirname,$item)){
+                else if(false !== stripos($item,$upload_dirname)){
                     $upload_in_gitingore = true;
                 }
-                else if(false !== stripos($ftp_dirname,$item)){
+                else if(false !== stripos($item,$ftp_dirname)){
                     $ftp_in_gitingore = true;
                 }
             }
