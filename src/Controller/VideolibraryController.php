@@ -214,7 +214,7 @@ class VideolibraryController extends AbstractController
         else{
             $videos = $rep->findBy([],["id"=>"DESC"],$maxResults);
             $result["payload"] = array_map(function ($el){
-                $item = [
+                return [
                     "id"=>$el->getJobRef(),
                     "status"=>$el->getState(),
                     "startTime"=>$el->getjobStartTime(),
