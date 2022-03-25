@@ -217,9 +217,9 @@ class VideolibraryController extends AbstractController
                 $item = [
                     "id"=>$el->getJobRef(),
                     "status"=>$el->getState(),
-                    "startTime"=>$el->getStartTime(),
-                    "finishTime"=>$el->getFinishTime(),
-                    "submitTime"=>$el->getSubmitTime(),
+                    "startTime"=>$el->getjobStartTime(),
+                    "finishTime"=>$el->getjobFinishTime(),
+                    "submitTime"=>$el->getjobSubmitTime(),
                     "duration"=>$el->getDuration(),
                     "duration_formated"=> gmdate('H:i:s', $el->getDuration()),
                     "jobPercent"=>$el->getJobPercent(),
