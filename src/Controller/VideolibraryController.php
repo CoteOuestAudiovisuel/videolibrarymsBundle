@@ -216,7 +216,7 @@ class VideolibraryController extends AbstractController
             $result["payload"] = array_map(function ($el){
                 $item = [
                     "id"=>$el->getJobRef(),
-                    "status"=>$el->getStatus(),
+                    "status"=>$el->getState(),
                     "startTime"=>$el->getStartTime(),
                     "finishTime"=>$el->getFinishTime(),
                     "submitTime"=>$el->getSubmitTime(),
