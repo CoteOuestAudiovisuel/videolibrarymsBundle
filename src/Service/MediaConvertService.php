@@ -226,16 +226,17 @@ class MediaConvertService
                 $payload = str_replace("__KEYURL__", $keyurl, $payload);
                 $payload = str_replace("__IV__", bin2hex($iv), $payload);
             }
-            else{
-                // lorsque l'encrption est desactivé
-                unset($payload["Settings"]["OutputGroups"][0]["OutputGroupSettings"]["HlsGroupSettings"]["Encryption"]);
-            }
 
             $payload = str_replace("__SCREENSHOT_TC__",$timecode,$payload);
             $payload = str_replace("__INPUTFILE__",$inputfile,$payload);
             $payload = str_replace("__OUTPUTFILE__",$outputfile,$payload);
 
             $jobSetting = json_decode($payload,true);
+
+            if(!$withEncryption){
+                // lorsque l'encrption est desactivé
+                unset($jobSetting["Settings"]["OutputGroups"][0]["OutputGroupSettings"]["HlsGroupSettings"]["Encryption"]);
+            }
 
             $p = array_merge($jobSetting,[
                 "Role" => $this->container->getParameter("coa_videolibrary.mediaconvert_role_arn"),
