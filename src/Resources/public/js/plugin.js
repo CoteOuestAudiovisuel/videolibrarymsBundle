@@ -95,12 +95,12 @@ Aaz.VideoLibrary = (function(nsp){
     Object.assign(VideoLibrary.prototype,nsp.EventDispatcher.prototype);
 
     // requete pour chargement progressif
-    VideoLibrary.prototype.loadMore = function(limit,offset){
+    VideoLibrary.prototype.loadMore = function(limit,offset,term){
         return new Promise((resolve,reject)=>{
             $.ajax({
                 url:"",
-                get:"post",
-                data:{limit:"limit",offset:offset},
+                method:"get",
+                data:{limit:limit,offset:offset,q:term},
                 headers:{accept:"text/html"},
                 dataType:"text",
                 success:function(data){
@@ -324,6 +324,11 @@ Aaz.VideoLibrary = (function(nsp){
         let modal_screenshot = $(".modal-screenshot");
         var scroller = new Aaz.Scroller();
 
+        let debounce_timerid = null;
+        let search_old_value = "";
+        let old_reject = null;
+        let search_input = $("#main-container .search-input");
+
 
         /**
          * ouverture et fermeture de modal screenshot
@@ -494,11 +499,12 @@ Aaz.VideoLibrary = (function(nsp){
 
                     var limit = 20;
                     var offset = container.find(".data-item").length;
+                    let term = search_input.val();
 
                     $.ajax({
                         url:"",
                         method:"GET",
-                        data:{limit:limit,offset:offset},
+                        data:{limit:limit,offset:offset,q:term},
                         headers:{accept:"text/html"},
                         dataType:"text",
                         success:function(data){
@@ -523,6 +529,57 @@ Aaz.VideoLibrary = (function(nsp){
             this.createCirclesProgression(circles)
             this.getJobsStatus();
         }
+
+        // recherche
+        // pipeline item pour verifier si le contenu d'un champ a changé
+        function until_change(current_value){
+            return new Promise((resolve,reject)=>{
+                if(current_value.trim() !== search_old_value.trim()){
+                    search_old_value = current_value;
+                    resolve(current_value);
+                }
+                else{
+                    reject("until_change");
+                }
+            });
+        }
+        // pipeline item pour executer une action apres un delay donné
+        function debounce(current_value){
+            if(debounce_timerid){
+                clearTimeout(debounce_timerid);
+                //old_reject(false);
+            }
+
+            return new Promise((resolve,reject)=>{
+                old_reject = reject;
+                debounce_timerid = setTimeout(()=>{
+                    resolve(true);
+                },300);
+            });
+        }
+
+        //Fonction pour vérification de numéro de téléphone
+        search_input
+            .on("change keyup", (e) =>{
+                let value = e.target.value;
+
+                Promise.all([until_change(value), debounce(value)])
+                    .then(term=> {
+                        var limit = 20;
+                        var offset = 0;
+                        this.loadMore(limit,offset,value).then(data=>{
+                            let container = $("#main-container .card-body > table > tbody");
+                            container.html(data);
+                        },err=>{
+
+                        })
+                    },err=>{
+                        if(err !== "until_change" || !value.length ){
+
+                        }
+                    });
+
+            });
 
         return this;
     }

@@ -7,6 +7,7 @@ use Coa\VideolibraryBundle\Service\CoaVideolibraryService;
 use Coa\VideolibraryBundle\Service\MediaConvertService;
 use Coa\VideolibraryBundle\Service\S3Service;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Asset\Packages;
@@ -14,6 +15,7 @@ use Symfony\Component\HttpFoundation\AcceptHeader;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use function Doctrine\ORM\QueryBuilder;
 
 
 /**
@@ -48,16 +50,34 @@ class VideolibraryController extends AbstractController
     /**
      * @Route("/", name="index")
      */
-    public function index(Request $request): Response
+    public function index(Request $request, EntityManagerInterface $em): Response
     {
         $entity_class = $this->getParameter("coa_videolibrary.video_entity");
-        $em = $this->getDoctrine()->getManager();
         $rep = $em->getRepository($entity_class);
 
         $limit = $request->query->get("limit",20);
         $offset = $request->query->get("offset",0);
+        $term = trim($request->query->get("q"));
 
-        $data = $rep->findBy([],["id"=>"DESC"],$limit,$offset);
+        $qb = $em->createQueryBuilder()
+            ->from($entity_class,'v')
+            ->select('v');
+
+            if($term){
+                $qb->where($qb->expr()->like("v.originalFilename",':q'))
+                    ->setParameter('q',"%".$term."%");
+            }
+
+        $data =     $qb->orderBy("v.id","DESC")
+            ->getQuery()
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getResult();
+
+
+        //$data = $rep->findBy([],["id"=>"DESC"],$limit,$offset);
+
+
         $view = '@CoaVideolibrary/home/index.html.twig';
 
 

@@ -170,6 +170,18 @@
         .table > tbody > tr:nth-child(1) td{
             border-top: none;
         }
+
+        .search-wrapper.active {
+            width: 100%;
+        }
+
+        .search-wrapper.active .input-holder {
+            width: 100%;
+        }
+
+        .search-wrapper.active .close {
+            left: 420px;
+        }
     </style>
 
 {% endblock %}
@@ -179,7 +191,21 @@
     <div class="main-card card mb-3" id="main-container">
 
         <div class="card-header">
-            <h5 class="card-title mb-0">Videos</h5>
+            <div class="d-flex align-items-center">
+                <h5 class="card-title mb-0">Videos</h5>
+            </div>
+
+            <div style="flex-grow: 1" class="px-5">
+
+                <div class="search-wrapper active">
+                    <div class="input-holder">
+                        <input type="text" class="search-input" placeholder="Recherche...">
+                        <button class="search-icon"><span></span></button>
+                    </div>
+{#                    <button class="close"></button>#}
+                </div>
+            </div>
+
 
             <div class="ml-auto">
                 <button class="btn bg-plum-plate btn-sm btn-upload text-white">
@@ -322,6 +348,8 @@
     <script>
         window.addEventListener("load",function (e){
             $('.venobox').venobox();
+
+
         });
     </script>
 {% endblock %}
