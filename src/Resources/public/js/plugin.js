@@ -166,7 +166,8 @@ Aaz.VideoLibrary = (function(nsp){
             let xhr = new XMLHttpRequest();
             $this.xhr = xhr;
             xhr.responseType = "json";
-            xhr.addEventListener("progress", updateProgress);
+            // #fix bug #015
+            xhr.upload.addEventListener("progress", updateProgress);
             xhr.open("POST", "upload");
             let blobEnd = chunkEnd-1;
             let contentRange = "bytes "+ start+"-"+ blobEnd+"/"+file.size;
