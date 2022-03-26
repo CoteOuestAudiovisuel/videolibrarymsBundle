@@ -133,6 +133,7 @@ Aaz.VideoLibrary = (function(nsp){
         let filename = file.name;
         let obj = e["obj"];
         let a = obj.find("a");
+        let aes_input = obj.find("input[type=checkbox]");
         let progress_bar = obj.find(".progress-bar");
         obj.removeClass("pending").addClass("uploading");
 
@@ -158,6 +159,7 @@ Aaz.VideoLibrary = (function(nsp){
                 chunkForm.append('video_id', video_id);
             }
             chunkForm.append('file', chunk, filename);
+            chunkForm.append('encryption', aes_input.prop("checked")?'on':'off');
             uploadChunk(chunkForm, start, chunkEnd);
         }
 
@@ -256,12 +258,22 @@ Aaz.VideoLibrary = (function(nsp){
 
             let li = $(`
                         <li class="list-group-item p-2 pending">
-                            <a href="" class="float-right btn-close text-info">
-                                <i class="fa fa-times"></i>
-                            </a>
-
-                            <div class="upload-list-item-name">
-                                ${file.name}
+                        
+                            <div class="d-flex justify-content-center">
+                                <div class="upload-list-item-name">
+                                    ${file.name}
+                                </div>
+                                    
+                                <a href="" class="ml-auto btn-close text-info">
+                                    <i class="fa fa-times"></i>
+                                </a>
+                            </div>
+                                
+                            <div class="custom-checkbox custom-control">
+                                <input checked type="checkbox" id="aes-${this._toUpload.length}"  class="custom-control-input">
+                                <label class="custom-control-label" for="aes-${this._toUpload.length}">
+                                    Contenu chiffré.
+                                </label>
                             </div>
 
                             <div class="progress-bar-xs progress mt-2" style="height: 1rem">

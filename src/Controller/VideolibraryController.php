@@ -239,6 +239,7 @@ class VideolibraryController extends AbstractController
         $em = $this->getDoctrine()->getManager();
         $video_entity = $this->getParameter("coa_videolibrary.video_entity");
         $rep = $em->getRepository($video_entity);
+        $encrypted = filter_var($request->request->get('encryption',true),FILTER_VALIDATE_BOOLEAN);
 
         $targetDirectory = $this->getTargetDirectory();
 
@@ -272,6 +273,7 @@ class VideolibraryController extends AbstractController
             $filepath = sprintf($targetDirectory . "/%s.mp4", $code);
             file_put_contents($filepath, $chunk, FILE_APPEND);
             $video->setFileSize($video->getFileSize() + $file_length);
+            $video->setEncrypted($encrypted);
 
             if($is_end) {
                 $video->setState("pending");
@@ -320,6 +322,7 @@ class VideolibraryController extends AbstractController
             $video->setDuration(null);
             $video->setCreatedAt(new \DateTimeImmutable());
             $video->setAuthor($this->getUser());
+            $video->setEncrypted($encrypted);
 
             $em->persist($video);
             $em->flush();

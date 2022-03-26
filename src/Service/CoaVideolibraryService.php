@@ -29,6 +29,7 @@ class CoaVideolibraryService
         $videosPath = $this->container->getParameter('kernel.project_dir') . "/public/coa_videolibrary_upload";
 
         $code = $video->getCode();
+        $withEncryption = $video->getEncrypted();
         $input_path = $videosPath."/".$code.'.mp4';
         if(!file_exists($input_path)) return;
 
@@ -39,7 +40,7 @@ class CoaVideolibraryService
         $keyurl = $hls_key_baseurl.$this->container->getParameter("coa_videolibrary.keys_route") . "/" . $keyfilename;
 
         try {
-            $job = $this->mediaConvert->createJob($inputfile,$keyfilename,$keyurl,$bucket);
+            $job = $this->mediaConvert->createJob($inputfile,$keyfilename,$keyurl,$bucket,$withEncryption);
             $video->setJobRef($job["data"]["id"]);
             $video->setState("SUBMITTED");
         }catch (\Exception $e){

@@ -113,6 +113,10 @@ abstract class Video
      */
     private $jobPercent;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $encrypted;
 
     public function getCode(): ?string
     {
@@ -350,6 +354,17 @@ abstract class Video
     {
         $this->jobPercent = $jobPercent;
 
+        return $this;
+    }
+
+    public function getEncrypted(): ?bool
+    {
+        return $this->encrypted;
+    }
+
+    public function setEncrypted(bool $encrypted): self
+    {
+        $this->encrypted = $encrypted;
         return $this;
     }
 }

@@ -199,34 +199,41 @@ class MediaConvertService
      *
      * creer une tache de transcodage
      */
-    public function createJob(string $inputfile, string $keyfilename, string $keyurl, string $bucket){
+    public function createJob(string $inputfile, string $keyfilename, string $keyurl, string $bucket, bool $withEncryption = true){
 
         $result = ["status"=>false];
 
         try {
             $client = $this->buildClient();
             $payload = file_get_contents(__DIR__ . '/../Resources/views/job.json');
+            $keys_folder = $this->container->getParameter('kernel.project_dir')."/coa_videolibrary_keys";
 
-            $keyval = random_bytes(16);
-            $iv = random_bytes(16);
             $timecodes = [20,30,45,50,60,90];
             $timecode = $timecodes[random_int(0,count($timecodes)-1)];
             $outputfile = "s3://$bucket/$keyfilename/manifest";
-            $keys_folder = $this->container->getParameter('kernel.project_dir')."/coa_videolibrary_keys";
 
+            // lorsque l'encrption est activé
+            if($withEncryption) {
+                $keyval = random_bytes(16);
+                $iv = random_bytes(16);
 
-            if(!file_exists($keys_folder)){
-                mkdir($keys_folder);
+                if (!file_exists($keys_folder)) {
+                    mkdir($keys_folder);
+                }
+                file_put_contents($keys_folder . "/" . $keyfilename, $keyval);
+
+                $payload = str_replace("__KEYVAL__", bin2hex($keyval), $payload);
+                $payload = str_replace("__KEYURL__", $keyurl, $payload);
+                $payload = str_replace("__IV__", bin2hex($iv), $payload);
+            }
+            else{
+                // lorsque l'encrption est desactivé
+                unset($payload["Settings"]["OutputGroups"][0]["OutputGroupSettings"]["HlsGroupSettings"]["Encryption"]);
             }
 
-            file_put_contents($keys_folder ."/". $keyfilename,$keyval);
-
+            $payload = str_replace("__SCREENSHOT_TC__",$timecode,$payload);
             $payload = str_replace("__INPUTFILE__",$inputfile,$payload);
             $payload = str_replace("__OUTPUTFILE__",$outputfile,$payload);
-            $payload = str_replace("__KEYVAL__",bin2hex($keyval),$payload);
-            $payload = str_replace("__KEYURL__",$keyurl,$payload);
-            $payload = str_replace("__IV__",bin2hex($iv),$payload);
-            $payload = str_replace("__SCREENSHOT_TC__",$timecode,$payload);
 
             $jobSetting = json_decode($payload,true);
 
