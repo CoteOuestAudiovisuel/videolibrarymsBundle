@@ -145,7 +145,8 @@ class CoaVideolibraryService
                     }
 
                     if (isset($job["resources"]) && count($job["resources"])) {
-                        $video->setPoster(array_slice($job["resources"]["thumnails"],1)[0]);
+                        #fix bug #045 not enough images on getstatus
+                        $video->setPoster($job["resources"]["thumnails"][0]);
                         $video->setScreenshots($job["resources"]["thumnails"]);
 
                         $video->setWebvtt($job["resources"]["webvtt"]);
