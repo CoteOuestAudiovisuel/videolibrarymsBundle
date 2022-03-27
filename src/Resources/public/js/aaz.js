@@ -197,9 +197,9 @@ var Aaz = Aaz || {};
         function VideoSearchModal(modal){
             nsp.EventDispatcher.call(this);
             this.modal = modal;
-            this.data =  [];
+            this.currentTrigger = null;
             this.params = {
-                __source:"modal-search"
+                __source:"modal-search",
             }
         }
         Object.assign(VideoSearchModal.prototype,nsp.EventDispatcher.prototype);
@@ -259,10 +259,7 @@ var Aaz = Aaz || {};
             $("body").on("click",".call-modal-video",(e)=>{
                 e.preventDefault();
                 let el = $(e.target);
-                let id = el.attr("data-id");
-                let usefor = el.attr("data-usefor");
-                this.modal.attr("data-id",id);
-                this.modal.attr("data-usefor",usefor);
+                this.currentTrigger = el;
                 this.modal.modal("show");
             });
 
@@ -283,9 +280,9 @@ var Aaz = Aaz || {};
                         search_input_timer = setTimeout(()=>{
                             this.loadVideos(50,0,e.target.value)
                                 .then(d=>{
-                                    this.emit(new nsp.Event('found',d));
+                                    this.emit(new nsp.Event('found',{data:d, term:e.target.value}));
                                 },err=>{
-                                    this.emit(new nsp.Event('not-found',d));
+                                    this.emit(new nsp.Event('not-found',{term:e.target.value}));
                                 })
                         },500);
                     }
@@ -296,18 +293,21 @@ var Aaz = Aaz || {};
             // clic sur chaque vignette dans la modal
             this.modal.on("click",".video-item button",(e)=>{
                 let parent = $(e.target).parents(".video-item");
-                this.emit(new nsp.Event('select',parent));
+                this.emit(new nsp.Event('select',{selected:parent, button:this.currentTrigger}));
                 this.modal.modal("hide");
             });
 
             // a l'ecoute des evenements
             this.subscribe(e=>{
                 switch (e.type){
+                    case "found":
+                        this.modal.find('.video-container').html(e.params.data);
+                        break;
+
                     case "open":
                         this.loadVideos(20,0)
                             .then(data=>{
                                 this.modal.find('.video-container').html(data);
-                                resolve(data);
                             },err=>{
                                 reject(err);
                             });
