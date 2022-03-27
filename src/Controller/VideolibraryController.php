@@ -61,10 +61,12 @@ class VideolibraryController extends AbstractController
 
         $qb = $em->createQueryBuilder()
             ->from($entity_class,'v')
-            ->select('v');
+            ->select('v')
+            ->where("v.state = :state")
+            ->setParameter("state","COMPLETE");
 
             if($term){
-                $qb->where($qb->expr()->like("v.originalFilename",':q'))
+                $qb->andWhere()($qb->expr()->like("v.originalFilename",':q'))
                     ->setParameter('q',"%".$term."%");
             }
 
