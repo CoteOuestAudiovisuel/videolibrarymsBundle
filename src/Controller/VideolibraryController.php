@@ -66,7 +66,7 @@ class VideolibraryController extends AbstractController
             ->setParameter("state","COMPLETE");
 
             if($term){
-                $qb->andWhere()($qb->expr()->like("v.originalFilename",':q'))
+                $qb->andWhere($qb->expr()->like("v.originalFilename",':q'))
                     ->setParameter('q',"%".$term."%");
             }
 
