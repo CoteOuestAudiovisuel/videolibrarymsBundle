@@ -84,6 +84,11 @@ class VideolibraryController extends AbstractController
         if($request->isXmlHttpRequest()){
             $acceptHeader = AcceptHeader::fromString($request->headers->get('Accept'));
             $view = '@CoaVideolibrary/home/item-render.html.twig';
+
+            if($request->query->get("__source") == "modal-search"){
+                $view = '@CoaVideolibrary/home/modal-video-item.html.twig';
+            }
+
         }
 
         return $this->render($view, [

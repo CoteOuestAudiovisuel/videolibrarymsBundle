@@ -1,0 +1,21 @@
+.modal-video .video-item{
+    position:relative;
+}
+.modal-video .video-item button{
+    font-weight: bold;
+}
+.modal-video .video-item .overlay{
+    position:absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top:0;
+    display:none;
+}
+.modal-video .video-item:hover .overlay{
+    display:flex !important;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    background: rgba(225,225,225,.8);
+}

@@ -1,189 +1,6 @@
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('bundles/coavideolibrary/libs/venobox/venobox.css') }}">
-
-    <style>
-
-        body #infinite-loading{
-            display: none;
-        }
-
-        body.infinite-scroll-active #infinite-loading{
-            display: block;
-        }
-
-        #upload-list{
-            position: fixed;
-            right: 2%;
-            bottom: 0;
-            z-index: 10;
-            width: 30%;
-            display: none;
-        }
-
-        #upload-list.open{
-            display: block;
-        }
-
-        #upload-list .card-body{
-            -webkit-transition: .4s ease-in-out all;
-            -moz-transition: .4s ease-in-out all;
-            transition: .4s ease-in-out all;
-        }
-
-        #upload-list.closed .card-body{
-            height: 0;
-            padding: 0;
-            -webkit-transition: .4s ease-in-out all;
-            -moz-transition: .4s ease-in-out all;
-            transition: .4s ease-in-out all;
-        }
-
-        #upload-list .upload-list-item-name{
-            font-size: 14px;
-        }
-
-        #upload-list .counter {
-            font-size: 1.8rem;
-            text-shadow: 2px 2px #000;
-        }
-
-        .drop-placeholder{
-            position: fixed;
-            left: 0;
-            right: 0;
-            top: 0;
-            bottom: 0;
-
-            display: none;
-            z-index: 20;
-            background: rgba(0,0,0,0.6);
-
-        }
-
-        .drop-placeholder h1{
-            font-size: 4rem;
-            text-shadow: 1px 1px #000;
-            color: #fff;
-            font-weight: bold;
-        }
-
-        body.dragstart .drop-placeholder{
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .counter-animation{
-            animation: bounce 1.5s infinite ease-out;
-            -webkit-animation: bounce 0.8s infinite ease-out;
-            transform: translateY(0px);
-            pointer-events: none;
-        }
-
-        @keyframes bounce {
-            from {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-30%);
-            }
-
-            75% {
-                transform: translateY(-20%);
-            }
-            to {
-                transform: translateY(0);
-            }
-
-        }
-
-        @-webkit-keyframes bounce {
-            from {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-30%);
-            }
-
-            75% {
-                transform: translateY(-20%);
-            }
-            to {
-                transform: translateY(0);
-            }
-        }
-
-
-        .circle-progress strong {
-            position: absolute;
-            top: 30px;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            line-height: 40px;
-            font-size: 30px;
-        }
-
-        .screenshot{
-
-        }
-
-        .screenshot--overlay{
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 1;
-            background: rgba(255,255,255,.4);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            -webkit-transition: 0.5s ease-in-out opacity;
-            transition: 0.5s ease-in-out opacity;
-            opacity: 0;
-        }
-
-        .screenshot:hover .screenshot--overlay{
-            opacity: 1;
-            transition: 0.5s ease-in-out opacity;
-        }
-
-        .data-item-image{
-            width: 312px; /*280px;*/
-            height: 176px; /*157.5px;*/
-            background: url('{{ asset("bundles/coavideolibrary/images/not-available.png") }}') no-repeat 0 0;
-        }
-
-        .video-sprites:not(.active){
-            background-size: cover;
-        }
-
-        .video-sprites.active{
-
-        }
-
-        .table > tbody > tr:nth-child(1) td{
-            border-top: none;
-        }
-
-        .search-wrapper.active {
-            width: 100%;
-        }
-
-        .search-wrapper.active .input-holder {
-            width: 100%;
-        }
-
-        .search-wrapper.active .close {
-            left: 420px;
-        }
-    </style>
-
+    <link rel="stylesheet" href="{{ asset('bundles/coavideolibrary/css/styles.css') }}">
 {% endblock %}
 
 {% block body %}
@@ -253,6 +70,7 @@
         </h1>
     </div>
 
+    {# liste des upload encours #}
     <div id="upload-list">
         <div class="main-card card" >
             <div class="card-header bg-plum-plate">
@@ -307,7 +125,7 @@
         </div>
     </div>
 
-
+    {# modale de gestion des screenshots #}
     <div class="modal fade modal-screenshot" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -335,6 +153,9 @@
             </div>
         </div>
     </div>
+
+    {# modal selection video #}
+    {% include '@CoaVideolibrary/home/modal-video.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}
@@ -348,6 +169,7 @@
     <script>
         window.addEventListener("load",function (e){
             $('.venobox').venobox();
+
 
 
         });

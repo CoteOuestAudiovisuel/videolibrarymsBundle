@@ -1,0 +1,15 @@
+{% for video in videos %}
+    <div class="col-3 mb-3 pl-2 pr-2 video-item">
+        <div style="position:relative">
+            <img width="100%" src="{{ video.poster|coaBucketBasename(video) }}" alt="">
+            <div class="overlay">
+                <button class="btn btn-info">
+                    Sélectionnez la video
+                </button>
+            </div>
+        </div>
+        <div class="text-muted text-center" style="font-size:11px;font-weight: bold;">
+            {{ video.originalFilename }}
+        </div>
+    </div>
+{% endfor %}

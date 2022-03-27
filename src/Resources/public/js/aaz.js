@@ -186,4 +186,136 @@ var Aaz = Aaz || {};
         }
         return Scroller;
     })();
+
+
+    /**
+     *
+     * @type {VideoLibrary}
+     */
+    nsp.VideoSearchModal = (function(){
+
+        function VideoSearchModal(modal){
+            nsp.EventDispatcher.call(this);
+            this.modal = modal;
+            this.data =  [];
+            this.params = {
+                __source:"modal-search"
+            }
+        }
+        Object.assign(VideoSearchModal.prototype,nsp.EventDispatcher.prototype);
+
+        /**
+         *
+         * @param limit le nombre maximum d'objet retourné
+         * @param offset la position a partir de laquel il faut chercher
+         * @param term lorsqu'on recherche un nom particulier
+         * @returns {Promise<unknown>}
+         */
+        VideoSearchModal.prototype.loadVideos = function (limit,offset,term){
+            return new Promise((resolve,reject)=>{
+                $.ajax({
+                    url:this.params.endpoint,
+                    data:{
+                        offset:offset,
+                        limit:limit,
+                        q:term,
+                        __source:this.params.__source
+                    },
+                    method:"GET",
+                    headers:{accept:"text/html"},
+                    dataType:"text",
+                    success:function(data){
+                        resolve(data);
+                    },
+                    error:function(a,b,c){
+                        reject("Oops un probleme est survenu, veuillez réessayer ulterieurement")
+                    }
+                })
+            });
+        }
+
+        /**
+         *
+         * @param params
+         */
+        VideoSearchModal.prototype.init = function(params={}){
+            $.extend(this.params,params);
+
+            /**
+             * ouverture de la modal
+             */
+            this.modal.on("shown.bs.modal",(e)=>{
+                this.emit(new nsp.Event("open",{el:this.modal}));
+            });
+
+            /**
+             * fermeture de la modal
+             */
+            this.modal.on("hidden.bs.modal",(e)=>{
+                this.emit(new nsp.Event("close",{el:this.modal}));
+            });
+
+            // mise en place les declencheurs de la modal
+            $("body").on("click",".call-modal-video",(e)=>{
+                e.preventDefault();
+                let el = $(e.target);
+                let id = el.attr("data-id");
+                let usefor = el.attr("data-usefor");
+                this.modal.attr("data-id",id);
+                this.modal.attr("data-usefor",usefor);
+                this.modal.modal("show");
+            });
+
+            /**
+             * gestion de la zone de recherche dans la boite de dialogue
+             * "Charger une video"
+             */
+            let search_input = this.modal.find(".search-input");
+            let search_input_timer = null;
+            search_input.on({
+                keyup:(e)=>{
+                    let prevValue = search_input.attr("data-prevvalue");
+
+                    if(search_input_timer)
+                        clearTimeout(search_input_timer);
+
+                    if(prevValue != e.target.value){
+                        search_input_timer = setTimeout(()=>{
+                            this.loadVideos(50,0,e.target.value)
+                                .then(d=>{
+                                    this.emit(new nsp.Event('found',d));
+                                },err=>{
+                                    this.emit(new nsp.Event('not-found',d));
+                                })
+                        },500);
+                    }
+                    search_input.attr("data-prevvalue",e.target.value)
+                }
+            });
+
+            // clic sur chaque vignette dans la modal
+            this.modal.on("click",".video-item button",(e)=>{
+                let parent = $(e.target).parents(".video-item");
+                this.emit(new nsp.Event('select',parent));
+                this.modal.modal("hide");
+            });
+
+            // a l'ecoute des evenements
+            this.subscribe(e=>{
+                switch (e.type){
+                    case "open":
+                        this.loadVideos(20,0)
+                            .then(data=>{
+                                this.modal.find('.video-container').html(data);
+                                resolve(data);
+                            },err=>{
+                                reject(err);
+                            });
+                        break;
+                }
+            })
+        }
+
+        return VideoSearchModal;
+    })();
 })(Aaz);
