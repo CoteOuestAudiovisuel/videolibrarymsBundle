@@ -250,6 +250,7 @@ class MediaConvertService
 
             $result["data"] = $this->formatJob($job["Job"]);
             $result["status"] = true;
+
             return $result;
 
         } catch (AwsException $e) {

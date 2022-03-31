@@ -44,7 +44,7 @@ class CoaVideolibraryService
             $video->setJobRef($job["data"]["id"]);
             $video->setState("SUBMITTED");
         }catch (\Exception $e){
-            //throw $e;
+            throw $e;
         }
 
         $video->setBucket($bucket);
@@ -66,6 +66,10 @@ class CoaVideolibraryService
 
         if(!file_exists($ftpPath)){
             mkdir($ftpPath);
+        }
+
+        if(!file_exists($destPath)){
+            mkdir($destPath);
         }
 
         foreach (glob(sprintf("%s/*.mp4",$ftpPath)) as $filename) {
