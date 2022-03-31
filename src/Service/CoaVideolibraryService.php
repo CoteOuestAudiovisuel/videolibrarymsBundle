@@ -122,11 +122,10 @@ class CoaVideolibraryService
 
             foreach ($videos as $video){
                 if(!$video->getJobRef()) continue;
-                $job = $this->mediaConvert->getJob($video->getJobRef());
-                if(!$job) continue;
+                $r = $this->mediaConvert->getJob($video->getJobRef());
+                if(!$r["status"]) continue;
 
-                var_dump($job);
-
+                $job = @$result["data"];
                 if(isset($job["status"]) && $job["status"] != $video->getState()){
                     $video->setState($job["status"]);
                 }
@@ -157,9 +156,7 @@ class CoaVideolibraryService
                 if($job["status"] == "COMPLETE"){
                     $bucket = $video->getBucket(); //@$job["bucket"];
                     $prefix = $video->getCode()."/"; //@$job["prefix"];
-                    echo sprintf("bucket=%s, prefix=%s\n",$bucket, $prefix);
                     $job["resources"] = $this->mediaConvert->getResources($bucket,$prefix);
-                    var_dump($job["resources"]);
                 }
 
                 if (isset($job["resources"]) && count($job["resources"])) {
