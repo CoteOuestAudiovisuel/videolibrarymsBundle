@@ -2,7 +2,7 @@
     {% for key in video.screenshots %}
         <div data-key="{{ key }}" class="col-3 p-1 screenshot">
             <div class="position-relative">
-                <img class="img-fluid" src="{{ video.poster|coaBucketBasename(video) }}" alt="">
+                <img class="img-fluid" src="https://{{ video.bucket }}.s3.{{ video.region }}.amazonaws.com/{{ key }}" alt="">
                 <div class="screenshot--overlay">
                     <button class="btn btn-dark btn-select-thumbnail">
                         Définir comme vignette
