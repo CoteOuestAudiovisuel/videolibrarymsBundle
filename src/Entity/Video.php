@@ -12,6 +12,8 @@ use Doctrine\ORM\Mapping\MappedSuperclass;
  */
 abstract class Video
 {
+    const DEFAULT_PROVIDER = "AWS";
+
     /**
      * @ORM\Column(type="string", length=64)
      */
@@ -117,6 +119,22 @@ abstract class Video
      * @ORM\Column(type="boolean", nullable=true)
      */
     private $encrypted;
+
+    /**
+     * @ORM\Column(type="string", length=15, nullable=true)
+     */
+    private $useFor;
+
+    /**
+     * @ORM\Column(type="string", length=15, nullable=true)
+     */
+    private $provider;
+
+
+    public  function __construct(){
+        $this->provider = self::DEFAULT_PROVIDER;
+    }
+
 
     public function getCode(): ?string
     {
@@ -365,6 +383,40 @@ abstract class Video
     public function setEncrypted(bool $encrypted): self
     {
         $this->encrypted = $encrypted;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getProvider(): ?string
+    {
+        return $this->provider;
+    }
+
+    /**
+     * @param mixed $provider
+     */
+    public function setProvider(?string $provider): self
+    {
+        $this->provider = $provider;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUseFor(): ?string
+    {
+        return $this->useFor;
+    }
+
+    /**
+     * @param mixed $useFor
+     */
+    public function setUseFor(?string $useFor): self
+    {
+        $this->useFor = $useFor;
         return $this;
     }
 }

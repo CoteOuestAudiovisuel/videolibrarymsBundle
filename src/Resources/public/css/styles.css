@@ -11,7 +11,7 @@ body.infinite-scroll-active #infinite-loading{
     right: 2%;
     bottom: 0;
     z-index: 10;
-    width: 30%;
+    width: 37%;
     display: none;
 }
 

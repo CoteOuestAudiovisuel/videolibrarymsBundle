@@ -61,16 +61,21 @@ class VideolibraryController extends AbstractController
 
         $qb = $em->createQueryBuilder()
             ->from($entity_class,'v')
-            ->select('v')
-            ->where("v.state = :state")
-            ->setParameter("state","COMPLETE");
+            ->select('v');
 
-            if($term){
-                $qb->andWhere($qb->expr()->like("v.originalFilename",':q'))
-                    ->setParameter('q',"%".$term."%");
+        if($term){
+            $qb
+                ->andWhere($qb->expr()->like("v.originalFilename",':q'))
+                ->setParameter('q',"%".$term."%");
+
+            if($request->query->get("__source") == "modal-search"){
+                $qb
+                    ->andWhere("v.state = :state")
+                    ->setParameter("state","COMPLETE");
             }
+        }
 
-        $data =     $qb->orderBy("v.id","DESC")
+        $data =  $qb->orderBy("v.id","DESC")
             ->getQuery()
             ->setFirstResult($offset)
             ->setMaxResults($limit)
@@ -267,6 +272,8 @@ class VideolibraryController extends AbstractController
         $video_entity = $this->getParameter("coa_videolibrary.video_entity");
         $rep = $em->getRepository($video_entity);
         $encrypted = filter_var($request->request->get('encryption',true),FILTER_VALIDATE_BOOLEAN);
+        $usefor = strtolower($request->request->get('usefor',''));
+        $usefor = in_array($usefor,["film","episode","clip"]) ? $usefor : "episode";
 
         $targetDirectory = $this->getTargetDirectory();
 
@@ -301,6 +308,8 @@ class VideolibraryController extends AbstractController
             file_put_contents($filepath, $chunk, FILE_APPEND);
             $video->setFileSize($video->getFileSize() + $file_length);
             $video->setEncrypted($encrypted);
+            $video->setUseFor($usefor);
+
 
             if($is_end) {
                 $video->setState("pending");
@@ -350,6 +359,7 @@ class VideolibraryController extends AbstractController
             $video->setCreatedAt(new \DateTimeImmutable());
             $video->setAuthor($this->getUser());
             $video->setEncrypted($encrypted);
+            $video->setUseFor($usefor);
 
             $em->persist($video);
             $em->flush();

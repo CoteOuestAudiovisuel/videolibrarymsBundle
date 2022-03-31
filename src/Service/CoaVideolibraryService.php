@@ -74,6 +74,16 @@ class CoaVideolibraryService
             $code = substr(trim(base64_encode(bin2hex(openssl_random_pseudo_bytes(32,$ok))),"="),0,32);
             $file_length = filesize($filename);
             $newFilename = $destPath . "/" . $code . ".mp4";
+            $usefor = "episode";
+            $encrypted = true;
+
+            if(preg_match("#(film|episode|clip)_(.+)#i",$basename,$m)){
+                $usefor = strtolower($m[1]);
+                $basename = $m[2];
+                if($usefor == "clip"){
+                    $encrypted = false;
+                }
+            }
 
             $video = new $video_entity();
             $video->setCode($code);
@@ -81,6 +91,8 @@ class CoaVideolibraryService
             $video->setFileSize($file_length);
             $video->setState("pending");
             $video->setIsTranscoded(false);
+            $video->setEncrypted($encrypted);
+            $video->setUseFor($usefor);
             $video->setCreatedAt(new \DateTimeImmutable());
             $this->em->persist($video);
             $this->em->flush();

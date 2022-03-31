@@ -34,7 +34,7 @@ class CoaVideolibraryTranscodeCommand extends Command
         $this
             ->addOption('hls-key-baseurl', 'k', InputOption::VALUE_REQUIRED, "base url pour les clés DRM")
             ->addOption('video-baseurl', 'b', InputOption::VALUE_REQUIRED, "base url d'acces aux fichiers mp4 en HTTP")
-            ->addOption('limit', 'l', InputOption::VALUE_OPTIONAL, "nombre de fichier a transcode en une seul fois",10)
+            ->addOption('limit', 'l', InputOption::VALUE_OPTIONAL, "nombre de fichier a transcode en une seul fois",20)
         ;
     }
 

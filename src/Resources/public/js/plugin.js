@@ -150,6 +150,8 @@ Aaz.VideoLibrary = (function(nsp){
         createChunk(start);
 
         function createChunk(start){
+            let usefor_input = obj.find("input[type=radio]:checked");
+
             chunkCounter++;
             chunkEnd = Math.min(start + chunkSize , file.size );
             const chunk = file.slice(start, chunkEnd,file.type);
@@ -160,6 +162,7 @@ Aaz.VideoLibrary = (function(nsp){
             }
             chunkForm.append('file', chunk, filename);
             chunkForm.append('encryption', aes_input.prop("checked")?'on':'off');
+            chunkForm.append('usefor', usefor_input.val());
             uploadChunk(chunkForm, start, chunkEnd);
         }
 
@@ -245,42 +248,79 @@ Aaz.VideoLibrary = (function(nsp){
     VideoLibrary.prototype.sourceAvailable = function (files){
         let uploadlist = $("#upload-list");
         let uploadlist_container = uploadlist.find(".list-group");
-
+        let count = 0;
         for(let file of files){
             let ext = file.name.split('.');
+
             ext = ext.slice(-1);
             ext = ext[0];
             ext = ext.toLowerCase();
+
 
             if (["mp4"].indexOf(ext) === -1){
                 continue;
             }
 
+            count++;
+            let gettime = (new Date()).getTime();
+            let _id = count+'_'+gettime;
+
             let li = $(`
-                        <li class="list-group-item p-2 pending">
+            <li class="list-group-item p-2 pending">
+            
+                <div class="d-flex justify-content-center">
+                    <div class="upload-list-item-name">
+                        ${file.name}
+                    </div>
                         
-                            <div class="d-flex justify-content-center">
-                                <div class="upload-list-item-name">
-                                    ${file.name}
-                                </div>
-                                    
-                                <a href="" class="ml-auto btn-close text-info">
-                                    <i class="fa fa-times"></i>
-                                </a>
-                            </div>
-                                
-                            <div class="custom-checkbox custom-control">
-                                <input checked type="checkbox" id="aes-${this._toUpload.length}"  class="custom-control-input">
-                                <label class="custom-control-label" for="aes-${this._toUpload.length}">
-                                    Contenu chiffré.
-                                </label>
-                            </div>
+                    <a href="" class="ml-auto btn-close text-info">
+                        <i class="fa fa-times"></i>
+                    </a>
+                </div>
+                
+                
+                
+                <div class="d-flex justify-content-start">
+                   
+                    <div class="custom-checkbox custom-control">
+                        <input checked type="checkbox"  class="custom-control-input" id="encryption_${_id}">
+                        <label class="custom-control-label font-weight-bold" for="encryption_${_id}">
+                            Contenu chiffré.
+                        </label>
+                    </div>
+                    
+                    <div class="text-light px-2"> | </div>
+                    
+                    <div class="d-flex">
+                        <label class="font-weight-bold" style="margin:-1px 5px 0 4px">Utiliser comme: </label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="usefor_${_id}" id="usefor_${_id}_film" value="film">
+                            <label class="form-check-label" for="usefor_${_id}_film">
+                                Film
+                            </label>
+                        </div>
+                        
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="usefor_${_id}" id="usefor_${_id}_episode" value="episode" checked>
+                            <label class="form-check-label" for="usefor_${_id}_episode">
+                                Episode
+                            </label>
+                        </div>
+                        
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="usefor_${_id}" id="usefor_${_id}_clip" value="clip">
+                            <label class="form-check-label" for="usefor_${_id}_clip">
+                                Extrait
+                            </label>
+                        </div>
+                    </div>
+                </div>
 
-                            <div class="progress-bar-xs progress mt-2" style="height: 1rem">
-                                <div class="progress-bar bg-info" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
-                            </div>
+                <div class="progress-bar-xs progress mt-2" style="height: 1rem">
+                    <div class="progress-bar bg-info" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
+                </div>
 
-                        </li>`);
+            </li>`);
 
             let itemfile = {"file":file,"obj":li};
 
@@ -310,9 +350,9 @@ Aaz.VideoLibrary = (function(nsp){
             uploadlist_container.append(li);
         }
         uploadlist.addClass("open");
-        if(this._in_upload === false){
-            this.upload();
-        }
+        // if(this._in_upload === false){
+        //     this.upload();
+        // }
     }
 
     // initialisation du controller
@@ -328,6 +368,24 @@ Aaz.VideoLibrary = (function(nsp){
         let search_old_value = "";
         let old_reject = null;
         let search_input = $("#main-container .search-input");
+
+        // control global sur encryption
+        uploadlist.find(".card-footer input[type=checkbox]#main_encryption").on("change",e=>{
+            uploadlist.find(".card-body input[type=checkbox]").prop("checked",e.target.checked);
+        });
+
+        // control global sur le usefor
+        uploadlist.find(".card-footer input[name=usefor]").on("change",e=>{
+            uploadlist.find(".card-body input[type=radio][value="+e.target.value+"]").prop("checked",true);
+        });
+
+        // control pour demarrer l'upload
+        uploadlist.find(".card-footer button.start-upload").on("click",e=>{
+            if(this._in_upload === false){
+                this.upload();
+            }
+        });
+
 
 
         /**
@@ -418,7 +476,7 @@ Aaz.VideoLibrary = (function(nsp){
                     let files = ee.target.files;
                     //this.sourceAvailable(files);
                 }
-            })
+            });
             input.trigger("click");
         });
 
@@ -434,7 +492,7 @@ Aaz.VideoLibrary = (function(nsp){
                         let files = ee.target.files;
                         this.sourceAvailable(files);
                     }
-                })
+                });
                 input.trigger("click");
             }
         });
