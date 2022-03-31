@@ -116,81 +116,150 @@ class CoaVideolibraryService
         $video_entity = $this->container->getParameter('coa_videolibrary.video_entity');
         $rep = $this->em->getRepository($video_entity);
         $basedir = $this->container->getParameter('kernel.project_dir') . "/public/coa_videolibrary_upload";
+        $result = ["payload"=>[]];
 
-        if(!$rep->count(["state"=>["PROGRESSING","SUBMITTED"]])) {
-            return ["payload"=>[]];
-        }
+        if(($videos = $rep->findBy(["state"=>["PROGRESSING","SUBMITTED"]],["id"=>"ASC"],$maxResults))) {
 
-        $result = $this->mediaConvert->listJobs($maxResults,'DESCENDING', null);
+            foreach ($videos as $video){
+                if(!$video->getJobRef()) continue;
+                $job = $this->mediaConvert->getJob($video->getJobRef());
+                if(!$job) continue;
 
-        if(isset($result["payload"])){
-            foreach ($result["payload"] as &$job){
-
-                if(($video = $rep->findOneBy(["jobRef"=>$job["id"]]))) {
-
-                    if(!in_array($video->getState(),["PROGRESSING","pending","SUBMITTED"])){
-                        continue;
-                    }
-
-                    if(isset($job["status"]) && $job["status"] != $video->getState()){
-                        $video->setState($job["status"]);
-                    }
-
-                    if(isset($job["duration"]) && $job["duration"] != $video->getDuration()){
-                        $video->setDuration($job["duration"]);
-                    }
-
-                    if($job["status"] == "COMPLETE") {
-                        $video->setJobPercent(100);
-                    }
-                    else{
-                        $video->setJobPercent($job["jobPercent"]);
-                    }
-
-                    if (isset($job["startTime"]) && $job["startTime"]) {
-                        $video->setjobStartTime(new \DateTimeImmutable($job["startTime"]));
-                    }
-
-                    if (isset($job["submitTime"]) && $job["submitTime"]) {
-                        $video->setjobSubmitTime(new \DateTimeImmutable($job["submitTime"]));
-                    }
-
-                    if (isset($job["finishTime"]) && $job["finishTime"]) {
-                        $video->setjobFinishTime(new \DateTimeImmutable($job["finishTime"]));
-                    }
-
-                    if($job["status"] == "COMPLETE"){
-                        $bucket = $job["bucket"];
-                        $prefix = $job["prefix"];
-                        $job["resources"] = $this->mediaConvert->getResources($bucket,$prefix);
-                    }
-
-                    if (isset($job["resources"]) && count($job["resources"])) {
-                        #fix bug #045 not enough images on getstatus
-                        $video->setPoster($job["resources"]["thumnails"][0]);
-                        $video->setScreenshots($job["resources"]["thumnails"]);
-
-                        $video->setWebvtt($job["resources"]["webvtt"]);
-                        $video->setManifest($job["resources"]["manifests"][0]);
-                        $video->setVariants(array_slice($job["resources"]["manifests"], 1));
-                    }
-
-                    $this->em->persist($video);
-                    $this->em->flush();
-
-                    if(in_array($job["status"],["COMPLETE","ERROR","CANCELED"])){
-                        // supprimer les fichiers source mp4
-                        $filename = $basedir . "/" .$video->getCode().".mp4";
-                        // fichier video a supprimer
-                        if(file_exists($filename)){
-                            @unlink($filename);
-                        }
-                    }
-                    $job["html"] = $this->container->get("twig")->render("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
+                if(isset($job["status"]) && $job["status"] != $video->getState()){
+                    $video->setState($job["status"]);
                 }
+
+                if(isset($job["duration"]) && $job["duration"] != $video->getDuration()){
+                    $video->setDuration($job["duration"]);
+                }
+
+                if($job["status"] == "COMPLETE") {
+                    $video->setJobPercent(100);
+                }
+                else{
+                    $video->setJobPercent($job["jobPercent"]);
+                }
+
+                if (isset($job["startTime"]) && $job["startTime"]) {
+                    $video->setjobStartTime(new \DateTimeImmutable($job["startTime"]));
+                }
+
+                if (isset($job["submitTime"]) && $job["submitTime"]) {
+                    $video->setjobSubmitTime(new \DateTimeImmutable($job["submitTime"]));
+                }
+
+                if (isset($job["finishTime"]) && $job["finishTime"]) {
+                    $video->setjobFinishTime(new \DateTimeImmutable($job["finishTime"]));
+                }
+
+                if($job["status"] == "COMPLETE"){
+                    $bucket = $job["bucket"];
+                    $prefix = $job["prefix"];
+                    $job["resources"] = $this->mediaConvert->getResources($bucket,$prefix);
+                }
+
+                if (isset($job["resources"]) && count($job["resources"])) {
+                    #fix bug #045 not enough images on getstatus
+                    $video->setPoster($job["resources"]["thumnails"][0]);
+                    $video->setScreenshots($job["resources"]["thumnails"]);
+
+                    $video->setWebvtt($job["resources"]["webvtt"]);
+                    $video->setManifest($job["resources"]["manifests"][0]);
+                    $video->setVariants(array_slice($job["resources"]["manifests"], 1));
+                }
+
+                $this->em->persist($video);
+                $this->em->flush();
+                $result["payload"][] = $job;
+
+                if(in_array($job["status"],["COMPLETE","ERROR","CANCELED"])){
+                    // supprimer les fichiers source mp4
+                    $filename = $basedir . "/" .$video->getCode().".mp4";
+                    // fichier video a supprimer
+                    if(file_exists($filename)){
+                        @unlink($filename);
+                    }
+                }
+                $job["html"] = $this->container->get("twig")->render("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
             }
-            unset($job);
         }
+
+
+//        if(!$rep->count(["state"=>["PROGRESSING","SUBMITTED"]])) {
+//            return ["payload"=>[]];
+//        }
+//
+//        $result = $this->mediaConvert->listJobs($maxResults,'DESCENDING', null);
+//
+//        if(isset($result["payload"])){
+//            foreach ($result["payload"] as &$job){
+//
+//                if(($video = $rep->findOneBy(["jobRef"=>$job["id"]]))) {
+//
+//                    if(!in_array($video->getState(),["PROGRESSING","pending","SUBMITTED"])){
+//                        continue;
+//                    }
+//
+//                    if(isset($job["status"]) && $job["status"] != $video->getState()){
+//                        $video->setState($job["status"]);
+//                    }
+//
+//                    if(isset($job["duration"]) && $job["duration"] != $video->getDuration()){
+//                        $video->setDuration($job["duration"]);
+//                    }
+//
+//                    if($job["status"] == "COMPLETE") {
+//                        $video->setJobPercent(100);
+//                    }
+//                    else{
+//                        $video->setJobPercent($job["jobPercent"]);
+//                    }
+//
+//                    if (isset($job["startTime"]) && $job["startTime"]) {
+//                        $video->setjobStartTime(new \DateTimeImmutable($job["startTime"]));
+//                    }
+//
+//                    if (isset($job["submitTime"]) && $job["submitTime"]) {
+//                        $video->setjobSubmitTime(new \DateTimeImmutable($job["submitTime"]));
+//                    }
+//
+//                    if (isset($job["finishTime"]) && $job["finishTime"]) {
+//                        $video->setjobFinishTime(new \DateTimeImmutable($job["finishTime"]));
+//                    }
+//
+//                    if($job["status"] == "COMPLETE"){
+//                        $bucket = $job["bucket"];
+//                        $prefix = $job["prefix"];
+//                        $job["resources"] = $this->mediaConvert->getResources($bucket,$prefix);
+//                    }
+//
+//                    if (isset($job["resources"]) && count($job["resources"])) {
+//                        #fix bug #045 not enough images on getstatus
+//                        $video->setPoster($job["resources"]["thumnails"][0]);
+//                        $video->setScreenshots($job["resources"]["thumnails"]);
+//
+//                        $video->setWebvtt($job["resources"]["webvtt"]);
+//                        $video->setManifest($job["resources"]["manifests"][0]);
+//                        $video->setVariants(array_slice($job["resources"]["manifests"], 1));
+//                    }
+//
+//                    $this->em->persist($video);
+//                    $this->em->flush();
+//
+//                    if(in_array($job["status"],["COMPLETE","ERROR","CANCELED"])){
+//                        // supprimer les fichiers source mp4
+//                        $filename = $basedir . "/" .$video->getCode().".mp4";
+//                        // fichier video a supprimer
+//                        if(file_exists($filename)){
+//                            @unlink($filename);
+//                        }
+//                    }
+//                    $job["html"] = $this->container->get("twig")->render("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
+//
+//                }
+//            }
+//            unset($job);
+//        }
         return $result;
     }
 }
