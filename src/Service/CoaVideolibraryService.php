@@ -106,7 +106,7 @@ class CoaVideolibraryService
 
     /**
      * @param int $maxResults
-     * @return false[]
+     * @return array
      * @throws \Exception
      *
      * met a jour les entités videos en instance de transcodage
@@ -116,6 +116,11 @@ class CoaVideolibraryService
         $video_entity = $this->container->getParameter('coa_videolibrary.video_entity');
         $rep = $this->em->getRepository($video_entity);
         $basedir = $this->container->getParameter('kernel.project_dir') . "/public/coa_videolibrary_upload";
+
+        if(!$rep->count(["state"=>["PROGRESSING","SUBMITTED"]])) {
+            return ["payload"=>[]];
+        }
+
         $result = $this->mediaConvert->listJobs($maxResults,'DESCENDING', null);
 
         if(isset($result["payload"])){

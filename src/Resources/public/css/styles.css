@@ -151,7 +151,7 @@ body.dragstart .drop-placeholder{
 .data-item-image{
     width: 312px; /*280px;*/
     height: 176px; /*157.5px;*/
-    background: url('{{ asset("bundles/coavideolibrary/images/not-available.png") }}') no-repeat 0 0;
+    background: url('bundles/coavideolibrary/images/not-available.png') no-repeat 0 0;
 }
 
 .video-sprites:not(.active){
