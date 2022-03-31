@@ -155,6 +155,7 @@ class CoaVideolibraryService
                 if($job["status"] == "COMPLETE"){
                     $bucket = $video->getBucket(); //@$job["bucket"];
                     $prefix = $video->getCode()."/"; //@$job["prefix"];
+                    echo sprintf("bucket=%s, prefix=%s\n",$bucket, $prefix);
                     $job["resources"] = $this->mediaConvert->getResources($bucket,$prefix);
                 }
 
