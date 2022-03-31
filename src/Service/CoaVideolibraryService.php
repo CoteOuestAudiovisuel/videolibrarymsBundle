@@ -125,7 +125,7 @@ class CoaVideolibraryService
                 $r = $this->mediaConvert->getJob($video->getJobRef());
                 if(!$r["status"]) continue;
 
-                $job = @$result["data"];
+                $job = @$r["data"];
                 if(isset($job["status"]) && $job["status"] != $video->getState()){
                     $video->setState($job["status"]);
                 }
