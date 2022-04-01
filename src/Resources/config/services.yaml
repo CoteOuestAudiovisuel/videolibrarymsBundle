@@ -51,7 +51,3 @@ services:
     Coa\VideolibraryBundle\Extensions\Twig\FormatDuration:
         tags:
             - { name: twig.extension }
-
-    Coa\VideolibraryBundle\EventListener\GlobalRequestListener:
-        tags:
-            - { name: kernel.event_listener, event: 'kernel.request' }

@@ -45,6 +45,11 @@ abstract class Video
     private $poster;
 
     /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $download;
+
+    /**
      * @ORM\Column(type="json", nullable=true)
      */
     private $screenshots = [];
@@ -131,6 +136,8 @@ abstract class Video
     private $provider;
 
 
+
+
     public  function __construct(){
         $this->provider = self::DEFAULT_PROVIDER;
     }
@@ -204,6 +211,23 @@ abstract class Video
     {
         $this->poster = $poster;
 
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDownload(): ?string
+    {
+        return $this->download;
+    }
+
+    /**
+     * @param mixed $download
+     */
+    public function setDownload(?string $download): self
+    {
+        $this->download = $download;
         return $this;
     }
 

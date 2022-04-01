@@ -10,9 +10,10 @@ class MediaConvertService
 {
     private static MediaConvertClient $client;
     private ContainerInterface $container;
+    private S3Service $s3Service;
 
 
-    public function __construct(ContainerInterface $container){
+    public function __construct(ContainerInterface $container,S3Service $s3Service){
         $this->container = $container;
 
         $env = getenv();
@@ -23,6 +24,7 @@ class MediaConvertService
         if(!isset($env["AWS_SECRET_ACCESS_KEY"])){
             putenv(sprintf("%s=%s","AWS_SECRET_ACCESS_KEY",$container->getParameter("coa_videolibrary.aws_secret_access_key")));
         }
+        $this->s3Service = $s3Service;
     }
 
     /**
@@ -267,18 +269,9 @@ class MediaConvertService
      *
      */
     public function getResources(string $bucket,string $prefix){
-
         $result = [];
-        $s3 = new S3Client([
-            'region' => $this->container->getParameter("coa_videolibrary.aws_region"),
-            'version' => 'latest',
-        ]);
+        $objects = $this->s3Service->listObjects($bucket,$prefix);
 
-        $objects = $s3->getPaginator('ListObjects', [
-            'Bucket' => $bucket,
-            'Delimiter' => '/',
-            "Prefix"=>$prefix
-        ]);
 
         try {
             $manifests = $objects->search("Contents[? ends_with(Key,'.m3u8') ].Key | [? !ends_with(@,'I-Frame.m3u8') ] | sort(@)");
@@ -305,6 +298,15 @@ class MediaConvertService
                 $result["webvtt"] = $el;
             }
         }catch (\Exception $e){
+
+        }
+
+        try {
+            $mp4 = $objects->search("Contents[? ends_with(Key,'.mp4')].Key");
+            foreach ($mp4 as $el) {
+                $result["download"][] = $el;
+            }
+        } catch (\Exception $e) {
 
         }
 

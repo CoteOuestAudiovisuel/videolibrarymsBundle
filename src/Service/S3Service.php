@@ -3,6 +3,7 @@ namespace Coa\VideolibraryBundle\Service;
 
 use Aws\Sts\StsClient;
 use Aws\S3\S3Client;
+use Aws\ResultPaginator;
 use Aws\S3\Exception\S3Exception;
 use Aws\Exception\AwsException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -106,5 +107,50 @@ class S3Service
         return $result;
     }
 
+    /**
+     * recupere un url direct d'un element à télécharger
+     * exeample: le téléchargement des fichiers mp4
+     * @param string $bucket
+     * @param string $key
+     * @param string $expires
+     * @return array
+     */
+    public function getPresignedUrl(string $bucket, string $key, string $expires = "+5 minutes"): array{
+        $result = [];
+        try {
+            $client = $this->buildClient();
+            $cmd = $client->getCommand('GetObject', [
+                'Bucket' => $bucket,
+                'Key' => $key
+            ]);
 
+            $request = $client->createPresignedRequest($cmd, $expires);
+            $result["payload"] = sprintf("%s",$request->getUri());
+        } catch (S3Exception $e) {
+            $result["error"] = $e->getMessage();
+        }
+        return $result;
+    }
+
+    /**
+     * @param string $bucket
+     * @param string $prefix
+     * @return array
+     *
+     */
+    public function listObjects(string $bucket,string $prefix): ResultPaginator{
+
+        $s3 = new S3Client([
+            'region' => $this->container->getParameter("coa_videolibrary.aws_region"),
+            'version' => 'latest',
+        ]);
+
+        $objects = $s3->getPaginator('ListObjects', [
+            'Bucket' => $bucket,
+            'Delimiter' => '/',
+            "Prefix"=>$prefix
+        ]);
+
+        return $objects;
+    }
 }
