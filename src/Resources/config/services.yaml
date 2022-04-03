@@ -30,6 +30,8 @@ services:
             - '../../DependencyInjection/'
             - '../../Entity/'
 
+    Symfony\Component\DependencyInjection\ContainerInterface: '@service_container'
+
     Coa\VideolibraryBundle\Command\CoaVideolibraryTranscodeCommand:
         tags:
             - { name: console.command, command: 'coa:videolibrary:transcode' }
