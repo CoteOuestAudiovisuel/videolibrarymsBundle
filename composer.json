@@ -2,7 +2,7 @@
     "name": "coa/videolibrary-bundle",
     "description": "gestion des videos aws, upload, mediaconvert, s3",
     "type": "symfony-bundle",
-    "version": "v0.3.16",
+    "version": "v0.3.17",
     "minimum-stability": "dev",
     "prefer-stable": false,
     "require": {
