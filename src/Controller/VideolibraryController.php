@@ -320,12 +320,20 @@ class VideolibraryController extends AbstractController
 
             if ($is_end) {
                 $result['status'] = "success";
-                $baseurl = $request->getScheme() . '://' . $request->getHttpHost() . $request->getBasePath();
                 $key_baseurl = $this->getParameter("coa_videolibrary.hls_key_baseurl");
+                $baseurl = $request->getSchemeAndHttpHost();
 
-                if($key_baseurl){
+                if(!$key_baseurl){
+                    $key_baseurl = $baseurl;
+                }
+                else{
                     $baseurl = $key_baseurl;
                 }
+
+                if($_ENV["APP_ENV"] == "prod"){
+                    $baseurl = $request->getSchemeAndHttpHost();
+                }
+
                 $coaVideolibrary->transcode($video,$baseurl,$key_baseurl);
                 $result["html"] = $this->renderView("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
             }
@@ -344,6 +352,10 @@ class VideolibraryController extends AbstractController
             $chunk = $file->getContent();
             $filepath = sprintf($targetDirectory . "/%s.mp4", $code);
             file_put_contents($filepath, $chunk, FILE_APPEND);
+
+            if(($code_prefix = $this->getParameter("coa_videolibrary.prefix"))){
+                $code = sprintf("%s_%s",$code_prefix,$code);
+            }
 
             $video = new $video_entity();
             $video->setCode($code);

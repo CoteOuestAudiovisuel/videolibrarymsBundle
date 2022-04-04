@@ -8,3 +8,4 @@ coa_videolibrary:
   keys_route: '/keys'
   hls_key_baseurl: ~
   video_entity: ~
+  prefix: ~

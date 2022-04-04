@@ -57,6 +57,10 @@ class Configuration implements ConfigurationInterface
             //->isRequired()
             ->end()
 
+            ->scalarNode('prefix')
+            //->isRequired()
+            ->end()
+
             ->end();
 
         return $builder;
