@@ -349,13 +349,15 @@ class VideolibraryController extends AbstractController
             }
 
             $code = substr(trim(base64_encode(bin2hex(openssl_random_pseudo_bytes(32,$ok))),"="),0,32);
+            if(($code_prefix = $this->getParameter("coa_videolibrary.prefix"))){
+                $code = sprintf("%s_%s",$code_prefix,$code);
+            }
+
             $chunk = $file->getContent();
             $filepath = sprintf($targetDirectory . "/%s.mp4", $code);
             file_put_contents($filepath, $chunk, FILE_APPEND);
 
-            if(($code_prefix = $this->getParameter("coa_videolibrary.prefix"))){
-                $code = sprintf("%s_%s",$code_prefix,$code);
-            }
+
 
             $video = new $video_entity();
             $video->setCode($code);
