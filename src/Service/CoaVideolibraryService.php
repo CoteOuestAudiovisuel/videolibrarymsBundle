@@ -44,6 +44,8 @@ class CoaVideolibraryService
             $video->setJobRef($job["data"]["id"]);
             $video->setState("SUBMITTED");
         }catch (\Exception $e){
+
+            dd($e);
             throw $e;
         }
 
