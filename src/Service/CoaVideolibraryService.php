@@ -41,6 +41,7 @@ class CoaVideolibraryService
 
         try {
             $job = $this->mediaConvert->createJob($inputfile,$keyfilename,$keyurl,$bucket,$withEncryption);
+            dd($job);
             $video->setJobRef($job["data"]["id"]);
             $video->setState("SUBMITTED");
         }catch (\Exception $e){
