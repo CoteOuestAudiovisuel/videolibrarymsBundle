@@ -102,7 +102,7 @@ class MediaConvertService
     public  function getEndpoints(){
 
         $client = new MediaConvertClient([
-            'version' => "lastest",
+            'version' => "latest",
             'region' => $this->container->getParameter("coa_videolibrary.aws_region"),
         ]);
 

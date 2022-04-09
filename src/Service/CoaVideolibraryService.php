@@ -33,7 +33,7 @@ class CoaVideolibraryService
         $input_path = $videosPath."/".$code.'.mp4';
         if(!file_exists($input_path)) return;
 
-        $inputfile = $video_baseurl.$this->packages->getUrl('/coa_videolibrary_upload/'.$code.'.mp4');
+        $inputfile = $video_baseurl.'/coa_videolibrary_upload/'.$code.'.mp4';
         $keyfilename = $code;
         $bucket = $this->container->getParameter("coa_videolibrary.s3_bucket");
         $region = $this->container->getParameter("coa_videolibrary.aws_region");
