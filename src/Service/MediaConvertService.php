@@ -214,7 +214,7 @@ class MediaConvertService
             $timecode = $timecodes[random_int(0,count($timecodes)-1)];
             $outputfile = "s3://$bucket/$keyfilename/manifest";
 
-            // lorsque l'encrption est activé
+            // lorsque l'encription est activé
             if($withEncryption) {
                 $keyval = random_bytes(16);
                 $iv = random_bytes(16);
@@ -248,14 +248,19 @@ class MediaConvertService
                 ],
             ]);
 
+            dump($p);
+
             $job = $client->createJob($p);
 
             $result["data"] = $this->formatJob($job["Job"]);
             $result["status"] = true;
 
+            dd($job);
+
             return $result;
 
         } catch (AwsException $e) {
+
             $result["error"] = $e->getMessage();
         }
 
