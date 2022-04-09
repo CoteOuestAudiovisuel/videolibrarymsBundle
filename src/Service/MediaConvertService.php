@@ -248,16 +248,10 @@ class MediaConvertService
                 ],
             ]);
 
-            dd($p);
-
             $job = $client->createJob($p);
-
-
 
             $result["data"] = $this->formatJob($job["Job"]);
             $result["status"] = true;
-
-
 
             return $result;
 
