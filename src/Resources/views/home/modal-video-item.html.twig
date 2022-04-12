@@ -9,7 +9,7 @@
             </div>
         </div>
         <div class="text-muted text-center" style="font-size:11px;font-weight: bold;">
-            {{ video.originalFilename }}
+            {{ video.originalFilename|coa_videolibrary_truncate(40) }}
         </div>
     </div>
 {% endfor %}

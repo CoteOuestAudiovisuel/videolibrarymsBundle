@@ -53,3 +53,7 @@ services:
     Coa\VideolibraryBundle\Extensions\Twig\FormatDuration:
         tags:
             - { name: twig.extension }
+
+    Coa\VideolibraryBundle\Extensions\Twig\Truncate:
+        tags:
+            - { name: twig.extension }

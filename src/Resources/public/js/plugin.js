@@ -362,6 +362,7 @@ Aaz.VideoLibrary = (function(nsp){
         let uploadlist = $("#upload-list");
         let modal_remove = $(".modal-remove");
         let modal_screenshot = $(".modal-screenshot");
+        let modal_ftpsync = $(".modal-ftpsync");
         var scroller = new Aaz.Scroller();
 
         let debounce_timerid = null;
@@ -419,6 +420,17 @@ Aaz.VideoLibrary = (function(nsp){
                 $.post(`${code}/delete`);
                 modal_remove.modal("hide");
                 tr.remove();
+            }
+        });
+
+        /**
+         * gestion de la demande de synchronisation ftp
+         */
+        let btn_ftp = modal_ftpsync.find(".card-footer button.yes");
+        btn_ftp.on({
+            click:e=>{
+                $.post(`ftpsync`)
+                modal_ftpsync.modal("hide");
             }
         });
 

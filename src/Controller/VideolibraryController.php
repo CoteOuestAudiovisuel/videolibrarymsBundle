@@ -382,4 +382,16 @@ class VideolibraryController extends AbstractController
         }
         return $this->json($result);
     }
+
+
+    /**
+     * @Route("/ftpsync", name="ftpsync", methods={"POST"})
+     * synchronisation du dossier coa_videolibrary_ftp
+     */
+    public function ftpsync(Request $request, CoaVideolibraryService $coaVideolibrary): Response
+    {
+        $result = ["status"=>true];
+        $coaVideolibrary->FtpSync();
+        return  $this->json($result);
+    }
 }

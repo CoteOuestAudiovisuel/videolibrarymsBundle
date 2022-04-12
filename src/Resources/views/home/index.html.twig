@@ -2,11 +2,15 @@
     <link rel="stylesheet" href="{{ asset('bundles/coavideolibrary/libs/venobox/venobox.css') }}">
     <link rel="stylesheet" href="{{ asset('bundles/coavideolibrary/libs/scrollbar/jquery.mCustomScrollbar.css') }}" />
 
-    <link rel="stylesheet" href="{{ asset('bundles/coavideolibrary/css/styles.css') }}">
+    <link rel="stylesheet" href="{{ asset('bundles/coavideolibrary/css/styles.css') }}.1">
 
     <style>
         .mCustomScrollbar {
             touch-action: initial
+        }
+
+        .data-item-image{
+            background: url("{{ asset('bundles/coavideolibrary/images/not-available.png') }}") no-repeat 0 0;
         }
     </style>
 {% endblock %}
@@ -33,6 +37,11 @@
 
 
             <div class="ml-auto">
+                <button data-toggle="modal" data-target=".modal-ftpsync" class="call-modal btn bg-plum-plate btn-sm btn-ftpsync text-white">
+                    <i class="fa fa-refresh"></i>
+                    Synchronisation FTP
+                </button>
+
                 <button class="btn bg-plum-plate btn-sm btn-upload text-white">
                     <i class="fa fa-upload"></i>&nbsp;
                     Charger une video
@@ -204,6 +213,41 @@
         </div>
     </div>
 
+    {# modal de synchronisation ftp #}
+    <div class="modal fade modal-ftpsync" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="main-card card">
+                    <div class="card-header">
+                        <i class="header-icon lnr-question-circle icon-gradient bg-plum-plate"></i>
+                        Synchronisation FTP
+                    </div>
+
+                    <div class="card-body">
+
+                        <p style="font-size: 16px">
+                            Voulez-vous vraiment activer la synchronisation ?
+                            <br> Tout les fichiers deposés par FTP seront supprimés du dossier.
+                        </p>
+
+                    </div>
+
+                    <div class="d-block text-right card-footer">
+
+                        <button type="button" class="btn bg-plum-plate text-white yes">
+                            Oui
+                        </button>
+
+                        <button type="button" class="btn bg-plum-plate text-white no" data-dismiss="modal">
+                            Non
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {# modal selection video #}
     {% include '@CoaVideolibrary/home/modal-video.html.twig' %}
 {% endblock %}
@@ -215,7 +259,7 @@
     <script src="{{ asset('bundles/coavideolibrary/libs/scrollbar/jquery.mCustomScrollbar.concat.min.js') }}"></script>
 
     <script src="{{ asset('bundles/coavideolibrary/js/aaz.js') }}"></script>
-    <script src="{{ asset('bundles/coavideolibrary/js/plugin.js') }}"></script>
+    <script src="{{ asset('bundles/coavideolibrary/js/plugin.js') }}.1"></script>
     <script src="{{ asset('bundles/coavideolibrary/js/index.js') }}"></script>
 
     <script>

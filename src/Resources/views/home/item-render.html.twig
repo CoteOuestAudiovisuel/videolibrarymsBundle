@@ -14,7 +14,7 @@
             </div>
 
             <div>
-                <small class="text-uppercase data-item-name">{{ video.originalFilename }}</small>
+                <small class="text-uppercase data-item-name">{{ video.originalFilename|coa_videolibrary_truncate(50) }}</small>
             </div>
         </td>
 
