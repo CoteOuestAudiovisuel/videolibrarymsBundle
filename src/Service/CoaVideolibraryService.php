@@ -165,8 +165,8 @@ class CoaVideolibraryService
                     $video->setPoster($job["resources"]["thumnails"][0]);
                     $video->setScreenshots($job["resources"]["thumnails"]);
                     # add random poster selecttion
-                    if(count(@$job["resources"]["thumnails"])){
-                        $index = random_int(0,count($job["resources"]["thumnails"])-1);
+                    if(count(@$job["resources"]["thumnails"]) > 1){
+                        $index = random_int(1,count($job["resources"]["thumnails"])-1);
                         $video->setPoster($job["resources"]["thumnails"][$index]);
                     }
 
