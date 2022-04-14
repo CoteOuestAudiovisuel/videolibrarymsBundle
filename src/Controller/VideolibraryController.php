@@ -105,7 +105,6 @@ class VideolibraryController extends AbstractController
 
     /**
      * @Route("/{code}/view", name="show_video")
-     *
      * affichage une entité video
      */
     public function showVideo(Request $request, string $code): Response
@@ -118,7 +117,7 @@ class VideolibraryController extends AbstractController
 
     /**
      * @Route("/{code}/delete", name="delete_video", methods={"POST"})
-     * @IsGranted("ROLE_ADMIN")
+     * @IsGranted("PERMISSION_VIDEOLIBRARY_DELETE")
      *
      * supprimer une entité video
      */
@@ -164,7 +163,7 @@ class VideolibraryController extends AbstractController
 
     /**
      * @Route("/{code}/cancel-job", name="cancel_job", methods={"POST"})
-     * @IsGranted("ROLE_ADMIN")
+     * @IsGranted("PERMISSION_VIDEOLIBRARY_DELETE")
      *
      * annulation d'un tâche de transcodage
      */
@@ -198,7 +197,6 @@ class VideolibraryController extends AbstractController
 
     /**
      * @Route("/{code}/screenshots", name="show_screenshots", methods={"GET"})
-     *
      * affichage des vignettes d'une video
      */
     public function getScreenshot(Request $request, string $code): Response
@@ -264,6 +262,7 @@ class VideolibraryController extends AbstractController
 
     /**
      * @Route("/upload", name="upload")
+     * @IsGranted("PERMISSION_VIDEOLIBRARY_UPLOAD")
      */
     public function upload(Request $request, MediaConvertService $mediaConvert,
                            Packages $packages, CoaVideolibraryService $coaVideolibrary): Response
@@ -386,6 +385,7 @@ class VideolibraryController extends AbstractController
 
     /**
      * @Route("/ftpsync", name="ftpsync", methods={"POST"})
+     * @IsGranted("PERMISSION_VIDEOLIBRARY_UPLOAD")
      * synchronisation du dossier coa_videolibrary_ftp
      */
     public function ftpsync(Request $request, CoaVideolibraryService $coaVideolibrary): Response
