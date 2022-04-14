@@ -164,6 +164,11 @@ class CoaVideolibraryService
                     $video->setDownload(@$job["resources"]["download"][0]);
                     $video->setPoster($job["resources"]["thumnails"][0]);
                     $video->setScreenshots($job["resources"]["thumnails"]);
+                    # add random poster selecttion
+                    if(count(@$job["resources"]["thumnails"])){
+                        $index = random_int(0,count($job["resources"]["thumnails"])-1);
+                        $video->setPoster($job["resources"]["thumnails"][$index]);
+                    }
 
                     $video->setWebvtt($job["resources"]["webvtt"]);
                     $video->setManifest($job["resources"]["manifests"][0]);
