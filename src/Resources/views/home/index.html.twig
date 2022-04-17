@@ -259,48 +259,51 @@
     <script src="{{ asset('bundles/coavideolibrary/libs/scrollbar/jquery.mCustomScrollbar.concat.min.js') }}"></script>
 
     <script src="{{ asset('bundles/coavideolibrary/js/aaz.js') }}"></script>
-    <script src="{{ asset('bundles/coavideolibrary/js/plugin.js') }}.1"></script>
+    <script src="{{ asset('bundles/coavideolibrary/js/plugin.js') }}.2"></script>
     <script src="{{ asset('bundles/coavideolibrary/js/index.js') }}"></script>
 
     <script>
-        window.addEventListener("load",function (e){
-            $('.venobox').venobox();
-            let custom_scrollbar = $(".custom-scrollbar");
-            custom_scrollbar.mCustomScrollbar({
-                axis:"y",
-                setTop: 0,
-                autoHideScrollbar: true,
-                autoExpandScrollbar: true,
-                documentTouchScroll: true,
-                contentTouchScroll: 50,
 
-                advanced:{
-                    updateOnContentResize: true,
-                    updateOnImageLoad:true,
-                    updateOnSelectorChange:true
+        $('.venobox').venobox();
+
+        let custom_scrollbar = $(".custom-scrollbar");
+        custom_scrollbar.mCustomScrollbar({
+            axis:"y",
+            setTop: 0,
+            autoHideScrollbar: true,
+            autoExpandScrollbar: true,
+            documentTouchScroll: true,
+            contentTouchScroll: 50,
+
+            advanced:{
+                updateOnContentResize: true,
+                updateOnImageLoad:true,
+                updateOnSelectorChange:true
+            },
+
+            callbacks:{
+                // debut de scroll
+                onScrollStart: function(){
+
                 },
+                // fin de scroll
+                onScroll: function(){
 
-                callbacks:{
-                    // debut de scroll
-                    onScrollStart: function(){
+                },
+                // entrain de scroller
+                whileScrolling: function(){
 
-                    },
-                    // fin de scroll
-                    onScroll: function(){
+                },
+                // scroll a ateint le bas
+                onTotalScroll: function(){
 
-                    },
-                    // entrain de scroller
-                    whileScrolling: function(){
-
-                    },
-                    // scroll a ateint le bas
-                    onTotalScroll: function(){
-
-                    }
                 }
-            });
+            }
+        });
+        custom_scrollbar.removeClass("mCustomScrollbar");
 
-            custom_scrollbar.removeClass("mCustomScrollbar");
+        $(document).ready(function ($){
+
 
         });
     </script>
