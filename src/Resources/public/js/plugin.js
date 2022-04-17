@@ -579,7 +579,7 @@ Aaz.VideoLibrary = (function(nsp){
                         dataType:"text",
                         success:function(data){
                             container.append(data);
-                            container.find('.venobox:not(.vbox-item)').venobox();
+                            container.find('.venobox').venobox();
                         },
                         error:function(a,b,c){
 
