@@ -12,53 +12,58 @@ class Configuration implements ConfigurationInterface
 
         $rootNode = $builder->getRootNode();
         $rootNode
+            ->addDefaultsIfNotSet()
             ->children()
 
             ->scalarNode('aws_access_key_id')
-            //->isRequired()
+                ->info('access_key_id du compte aws')
+                ->defaultNull()
             ->end()
 
             ->scalarNode('aws_secret_access_key')
-            //->isRequired()
+                ->info('secret_access_key du compte aws')
+                ->defaultNull()
             ->end()
 
             ->scalarNode('aws_region')
-            //->isRequired()
+                ->info('la région definie, du bucket aws')
+                ->defaultNull()
             ->end()
 
             ->scalarNode('mediaconvert_endpoint')
-            //->isRequired()
+                ->info("l'endpoint sur laquelle requete la creation de tâche mediaconvert")
+                ->defaultNull()
             ->end()
 
             ->scalarNode('mediaconvert_role_arn')
-            //->isRequired()
+                ->info('ARN du role à utiliser pour mediaconvert')
+                ->defaultNull()
             ->end()
 
             ->scalarNode('s3_bucket')
-            //->isRequired()
+                ->info('le nom du bucket dans lequel les fichiers transcodés seront stockés')
+                ->defaultNull()
             ->end()
 
-            ->scalarNode('keys_folder')
-            //->isRequired()
-            ->end()
 
             ->scalarNode('keys_route')
-            //->isRequired()
+                ->defaultValue("/keys")
+                ->info('la route par default, pour les requete GET AES Key')
             ->end()
 
             ->scalarNode('hls_key_baseurl')
-            ->end()
-
-            ->scalarNode('upload_folder')
-            //->isRequired()
+                ->info("la base url pour l'access GET aux  clés")
+                ->defaultNull()
             ->end()
 
             ->scalarNode('video_entity')
-            //->isRequired()
+                ->info("l'entité Video à utiliser pour les opération de CRUD")
+                ->defaultNull()
             ->end()
 
             ->scalarNode('prefix')
-            //->isRequired()
+                ->info("le prefix des noms crées")
+                ->defaultValue("media")
             ->end()
 
             ->end();
