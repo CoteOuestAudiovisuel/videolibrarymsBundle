@@ -100,7 +100,7 @@ class CoaVideolibraryBundle extends Bundle
 
         // supression du fichier des routes
         $config_path = $container->getParameter('kernel.project_dir')."/config/routes/coa_videolibrary.yaml";
-        if(!file_exists($config_path)){
+        if(file_exists($config_path)){
             @unlink($config_path);
         }
 
