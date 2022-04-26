@@ -138,6 +138,8 @@
                         </div>
                     </div>
                 </div>
+
+                {% if video.state in  ["PROGRESSING","SUBMITTED"] %}
                 <div class="col-md-4 px-0">
 
                     {% if video.state == "COMPLETE" %}
@@ -162,6 +164,7 @@
                         </div>
                     {% endif %}
                 </div>
+                {% endif %}
             </div>
 
         </td>
