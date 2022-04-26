@@ -141,16 +141,16 @@
                 <div class="col-md-4 px-0">
 
                     {% if video.state == "COMPLETE" %}
-                        {% for v in video.screenshots|slice(1,5) %}
-                            <a class="venobox" data-gall="g-{{ video.code }}" href="{{ v|coaBucketBasename(video) }}">
-                                <img class="mx-0 px-0" width="70" src="{{ v|coaBucketBasename(video) }}" alt="">
-                            </a>
+{#                        {% for v in video.screenshots|slice(1,5) %}#}
+{#                            <a class="venobox" data-gall="g-{{ video.code }}" href="{{ v|coaBucketBasename(video) }}">#}
+{#                                <img class="mx-0 px-0" width="70" src="{{ v|coaBucketBasename(video) }}" alt="">#}
+{#                            </a>#}
 
-                        {% endfor %}
+{#                        {% endfor %}#}
 
                         <a  data-toggle="modal" data-target=".modal-screenshot" href="" class="call-modal text-decoration-none position-relative d-inline-block bg-light mx-0 px-0 align-middle" style="width:70px;height:39.375px;vertical-align: middle">
                             <div style="height: 100%; text-shadow: 1px 1px #000" class="text-white d-flex flex-column justify-content-center align-items-center">
-                                voir plus
+                                voir les vignettes
                             </div>
                         </a>
                     {% endif %}

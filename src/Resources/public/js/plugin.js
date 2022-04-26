@@ -70,6 +70,7 @@ Aaz.VideoSprites = (function(nsp){
 
                     if(item.timerid) clearTimeout(item.timerid);
                 });
+                $el.addClass("video-sprites-item");
             }
         });
     }
@@ -577,14 +578,15 @@ Aaz.VideoLibrary = (function(nsp){
                         data:{limit:limit,offset:offset,q:term},
                         headers:{accept:"text/html"},
                         dataType:"text",
-                        success:function(data){
+                        success:(data)=>{
                             container.append(data);
-                            container.find('.venobox').venobox();
+                            container.find('.venobox:not(.vbox-item)').venobox();
+                            this.emit(new nsp.Event("newfeed", {html:data}));
                         },
-                        error:function(a,b,c){
+                        error:(a,b,c)=>{
 
                         },
-                        complete:function(e){
+                        complete:(e)=>{
                             $(document.body).removeClass("infinite-scroll-active");
                         }
                     });

@@ -259,14 +259,15 @@
     <script src="{{ asset('bundles/coavideolibrary/libs/scrollbar/jquery.mCustomScrollbar.concat.min.js') }}"></script>
 
     <script src="{{ asset('bundles/coavideolibrary/js/aaz.js') }}"></script>
-    <script src="{{ asset('bundles/coavideolibrary/js/plugin.js') }}.11"></script>
-    <script src="{{ asset('bundles/coavideolibrary/js/index.js') }}"></script>
+    <script src="{{ asset('bundles/coavideolibrary/js/plugin.js') }}.13"></script>
+    <script src="{{ asset('bundles/coavideolibrary/js/index.js') }}.1"></script>
 
     <script>
 
         $('.venobox').venobox();
 
         let custom_scrollbar = $(".custom-scrollbar");
+
         custom_scrollbar.mCustomScrollbar({
             axis:"y",
             setTop: 0,
@@ -301,10 +302,5 @@
             }
         });
         custom_scrollbar.removeClass("mCustomScrollbar");
-
-        $(document).ready(function ($){
-
-
-        });
     </script>
 {% endblock %}
