@@ -24,7 +24,7 @@ class GlobalRequestListener
     public function onKernelRequest(RequestEvent $event)
     {
         if ($event->isMainRequest()) {
-            $versionStrategy = new EmptyVersionStrategy();
+            $versionStrategy = new StaticVersionStrategy("v1.0");
             $base_url_cdn = $this->requestStack->getCurrentRequest()->getSchemeAndHttpHost();
             $package = new UrlPackage($base_url_cdn, $versionStrategy);
             $this->packages->addPackage("coa_videolibrary_host", $package);
