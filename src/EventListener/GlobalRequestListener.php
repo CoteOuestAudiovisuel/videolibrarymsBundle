@@ -1,5 +1,5 @@
 <?php
-namespace App\EventListener;
+namespace Coa\VideolibraryBundle\EventListener;
 
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Asset\Packages;
