@@ -1,8 +1,7 @@
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('bundles/coavideolibrary/libs/venobox/venobox.css') }}">
-    <link rel="stylesheet" href="{{ asset('bundles/coavideolibrary/libs/scrollbar/jquery.mCustomScrollbar.css') }}" />
-
-    <link rel="stylesheet" href="{{ asset('bundles/coavideolibrary/css/styles.css') }}.1">
+    <link rel="stylesheet" href="{{ asset('bundles/coavideolibrary/libs/venobox/venobox.css','coa_videolibrary_host') }}">
+    <link rel="stylesheet" href="{{ asset('bundles/coavideolibrary/libs/scrollbar/jquery.mCustomScrollbar.css','coa_videolibrary_host') }}" />
+    <link rel="stylesheet" href="{{ asset('bundles/coavideolibrary/css/styles.css','coa_videolibrary_host') }}.1">
 
     <style>
         .mCustomScrollbar {
@@ -10,7 +9,7 @@
         }
 
         .data-item-image{
-            background: url("{{ asset('bundles/coavideolibrary/images/not-available.png') }}") no-repeat 0 0;
+            background: url("{{ asset('bundles/coavideolibrary/images/not-available.png','coa_videolibrary_host') }}") no-repeat 0 0;
         }
     </style>
 {% endblock %}
@@ -254,13 +253,13 @@
 
 {% block javascripts %}
 
-    <script src="{{ asset('bundles/coavideolibrary/libs/venobox/venobox.min.js') }}"></script>
-    <script src="{{ asset('bundles/coavideolibrary/libs/jquery-circle-progress-1.2.2/circle-progress.min.js') }}"></script>
-    <script src="{{ asset('bundles/coavideolibrary/libs/scrollbar/jquery.mCustomScrollbar.concat.min.js') }}"></script>
+    <script src="{{ asset('bundles/coavideolibrary/libs/venobox/venobox.min.js','coa_videolibrary_host') }}"></script>
+    <script src="{{ asset('bundles/coavideolibrary/libs/jquery-circle-progress-1.2.2/circle-progress.min.js','coa_videolibrary_host') }}"></script>
+    <script src="{{ asset('bundles/coavideolibrary/libs/scrollbar/jquery.mCustomScrollbar.concat.min.js','coa_videolibrary_host') }}"></script>
 
-    <script src="{{ asset('bundles/coavideolibrary/js/aaz.js') }}"></script>
-    <script src="{{ asset('bundles/coavideolibrary/js/plugin.js') }}.13"></script>
-    <script src="{{ asset('bundles/coavideolibrary/js/index.js') }}.2"></script>
+    <script src="{{ asset('bundles/coavideolibrary/js/aaz.js','coa_videolibrary_host') }}"></script>
+    <script src="{{ asset('bundles/coavideolibrary/js/plugin.js','coa_videolibrary_host') }}.13"></script>
+    <script src="{{ asset('bundles/coavideolibrary/js/index.js','coa_videolibrary_host') }}.2"></script>
 
     <script>
 
