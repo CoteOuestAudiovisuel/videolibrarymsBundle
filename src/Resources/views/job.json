@@ -192,7 +192,6 @@
             "CaptionLanguageSetting": "OMIT",
             "Destination": "__OUTPUTFILE__",
             "TimedMetadataId3Frame": "PRIV",
-            "CodecSpecification": "RFC_4281",
             "OutputSelection": "MANIFESTS_AND_SEGMENTS",
             "ProgramDateTimePeriod": 600,
             "MinSegmentLength": 0,
