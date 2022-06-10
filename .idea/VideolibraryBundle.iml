@@ -55,16 +55,9 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/filesystem" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/event-dispatcher-contracts" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/doctrine/lexer" />
-      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/framework-bundle" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/finder" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/http-kernel" />
-      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/http-foundation" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-mbstring" />
-      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-ctype" />
-      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-php80" />
-      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-php73" />
-      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/routing" />
-      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-php81" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/var-dumper" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/friendsofphp/proxy-manager-lts" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/service-contracts" />
@@ -76,6 +69,13 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/twig-bundle" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/twig-bridge" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/intl" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-php81" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/routing" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-php80" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/http-foundation" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-ctype" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-php73" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/framework-bundle" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
