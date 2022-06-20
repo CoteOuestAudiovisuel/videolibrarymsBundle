@@ -207,6 +207,47 @@ class VideolibraryController extends AbstractController
         return  $response;
     }
 
+
+
+    /**
+     * @Route("/{code}/save-duration", name="save_media_duration", methods={"POST"})
+     * modification de la durée d'un media
+     */
+    public function saveMediaDuration(Request $request, AwsS3Url $awsS3Url, string $code): Response
+    {
+        $video = $this->getVideo($code);
+        $em = $this->getDoctrine()->getManager();
+
+        $result = ["status"=>false];
+
+        $duree = explode(":",trim($request->request->get("duration")));
+        $h = 0;
+        $m = 0;
+        $s = 0;
+        if(count($duree) == 3){
+            list($h,$m,$s) = $duree;
+        }
+        else if(count($duree) == 2){
+            list($m,$s) = $duree;
+        }
+        else{
+            return $this->json([
+                "code" => 400,
+                "message" => "veuiller envoyer une durée valide hh:mm:ss"
+            ],400);
+        }
+
+        $duration = new \DateInterval(sprintf('PT%sH%sM%sS',$h,$m,$s));
+        $seconds = $duration->days*86400 + $duration->h*3600
+            + $duration->i*60 + $duration->s;
+
+        $video->setDuration($seconds);
+        $em->persist($video);
+        $em->flush();
+        $result["status"] = true;
+        return  $this->json($result);
+    }
+
     /**
      * @Route("/{code}/update-screenshot", name="update_screenshot", methods={"POST"})
      * modification de la vignette d'une video

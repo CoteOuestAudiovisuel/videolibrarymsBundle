@@ -461,6 +461,58 @@ Aaz.VideoLibrary = (function(nsp){
         });
 
         /**
+         * permet de modifier la durée des medias
+         */
+        $('body').on("click",".edit-duration",(ee)=>{
+            ee.preventDefault();
+            ee.stopPropagation();
+            let el = $(ee.target);
+
+            let span = el.parent().find("span:last");
+            span.off();
+
+            function endEdit(){
+                el.show();
+                el.removeClass("open");
+                span.attr("contenteditable","false");
+
+                let code = el.parents("tr:first").attr("data-id");
+                $.post(`${code}/save-duration`, {"duration":span.text().trim()}, (data)=>{
+                    if(data.status){
+
+                    }
+                });
+            }
+
+            if(!el.hasClass("open")){
+                el.hide();
+                el.addClass("open");
+                span.attr("contenteditable","true");
+
+                span.on("keydown",(e)=>{
+                    if(e.key.toLowerCase() === "enter"){
+                        e.preventDefault();
+                        e.stopPropagation();
+                        span.trigger("blur");
+                        return false;
+                    }
+                    else if(!/^\d|:|backspace|ArrowUp|ArrowDown|ArrowLeft|ArrowRight|ctrl|alt/i.test(e.key)){
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                });
+
+                span.on("blur",()=>{
+                    endEdit().bind(this);
+                    // on lance l'enregistrement
+                });
+
+                span.focus();
+            }
+        });
+
+        /**
          * changer la vignette d'une video
          */
         $('body').on("click",".modal-screenshot .btn-select-thumbnail",(e)=>{

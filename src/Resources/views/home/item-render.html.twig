@@ -50,13 +50,16 @@
                     Durée
                 </strong>
 
-                <div>
+                <br>
+
+                <span>
                     {% if video.duration %}
                         {{ video.duration|coaSecToDuration() }}
                     {% else %}
                         -
                     {% endif %}
-                </div>
+                </span>
+                &nbsp;<a class="edit-duration" href="" style="font-size: 11px">modifier</a>
             </div>
 
         </td>
