@@ -232,9 +232,10 @@ class VideolibraryController extends AbstractController
         }
         else{
             return $this->json([
+                "status"=>false,
                 "code" => 400,
                 "message" => "veuiller envoyer une durée valide hh:mm:ss"
-            ],400);
+            ],200);
         }
 
         $duration = new \DateInterval(sprintf('PT%sH%sM%sS',$h,$m,$s));
@@ -245,6 +246,7 @@ class VideolibraryController extends AbstractController
         $em->persist($video);
         $em->flush();
         $result["status"] = true;
+        $result["message"] = "Durée modifiée avec succès";
         return  $this->json($result);
     }
 

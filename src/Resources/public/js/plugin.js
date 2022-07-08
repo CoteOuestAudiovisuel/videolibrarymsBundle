@@ -365,6 +365,7 @@ Aaz.VideoLibrary = (function(nsp){
         let modal_screenshot = $(".modal-screenshot");
         let modal_ftpsync = $(".modal-ftpsync");
         var scroller = new Aaz.Scroller();
+        let toastSce = new nsp.Toast();
 
         let debounce_timerid = null;
         let search_old_value = "";
@@ -478,9 +479,14 @@ Aaz.VideoLibrary = (function(nsp){
 
                 let code = el.parents("tr:first").attr("data-id");
                 $.post(`${code}/save-duration`, {"duration":span.text().trim()}, (data)=>{
+                    let status = 'error';
                     if(data.status){
-
+                        status = "success";
                     }
+                    else{
+                        span.text("-");
+                    }
+                    toastSce.insert(status,"Message",data.message);
                 });
             }
 
@@ -504,7 +510,7 @@ Aaz.VideoLibrary = (function(nsp){
                 });
 
                 span.on("blur",()=>{
-                    endEdit().bind(this);
+                    endEdit();
                     // on lance l'enregistrement
                 });
 
