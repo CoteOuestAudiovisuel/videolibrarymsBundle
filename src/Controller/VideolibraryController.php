@@ -67,12 +67,12 @@ class VideolibraryController extends AbstractController
             $qb
                 ->andWhere($qb->expr()->like("v.originalFilename",':q'))
                 ->setParameter('q',"%".$term."%");
+        }
 
-            if($request->query->get("__source") == "modal-search"){
-                $qb
-                    ->andWhere("v.state = :state")
-                    ->setParameter("state","COMPLETE");
-            }
+        if($request->query->get("__source") == "modal-search"){
+            $qb
+                ->andWhere("v.state = :state")
+                ->setParameter("state","COMPLETE");
         }
 
         $data =  $qb->orderBy("v.id","DESC")
