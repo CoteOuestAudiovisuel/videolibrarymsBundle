@@ -2,6 +2,7 @@
 
 namespace Coa\VideolibraryBundle\Controller;
 
+use Coa\VideolibraryBundle\Entity\Video;
 use Coa\VideolibraryBundle\Extensions\Twig\AwsS3Url;
 use Coa\VideolibraryBundle\Service\CoaVideolibraryService;
 use Coa\VideolibraryBundle\Service\MediaConvertService;
@@ -15,6 +16,7 @@ use Symfony\Component\HttpFoundation\AcceptHeader;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use function Doctrine\ORM\QueryBuilder;
 
 
@@ -50,43 +52,18 @@ class VideolibraryController extends AbstractController
     /**
      * @Route("/", name="index")
      */
-    public function index(Request $request, EntityManagerInterface $em): Response
+    public function index(Request $request, EntityManagerInterface $em, CoaVideolibraryService $coaVideolibrary,HttpClientInterface $httpClient): Response
     {
-        $entity_class = $this->getParameter("coa_videolibrary.video_entity");
-        $rep = $em->getRepository($entity_class);
-
-        $limit = $request->query->get("limit",20);
-        $offset = $request->query->get("offset",0);
-        $term = trim($request->query->get("q"));
-
-        $qb = $em->createQueryBuilder()
-            ->from($entity_class,'v')
-            ->select('v');
-
-        if($term){
-            $qb
-                ->andWhere($qb->expr()->like("v.originalFilename",':q'))
-                ->setParameter('q',"%".$term."%");
+        $data = [];
+        $service = $request->query->get("service");
+        if($service){
+            $data = $coaVideolibrary->searchInConstellation($service);
         }
-
-        if($request->query->get("__source") == "modal-search"){
-            $qb
-                ->andWhere("v.state = :state")
-                ->setParameter("state","COMPLETE");
+        else{
+            $data = $coaVideolibrary->search();
         }
-
-        $data =  $qb->orderBy("v.id","DESC")
-            ->getQuery()
-            ->setFirstResult($offset)
-            ->setMaxResults($limit)
-            ->getResult();
-
-
-        //$data = $rep->findBy([],["id"=>"DESC"],$limit,$offset);
-
 
         $view = '@CoaVideolibrary/home/index.html.twig';
-
 
         if($request->isXmlHttpRequest()){
             $acceptHeader = AcceptHeader::fromString($request->headers->get('Accept'));
@@ -95,11 +72,11 @@ class VideolibraryController extends AbstractController
             if($request->query->get("__source") == "modal-search"){
                 $view = '@CoaVideolibrary/home/modal-video-item.html.twig';
             }
-
         }
 
         return $this->render($view, [
-            'videos' => $data
+            'videos' => $data,
+            "service" => $service
         ]);
     }
 

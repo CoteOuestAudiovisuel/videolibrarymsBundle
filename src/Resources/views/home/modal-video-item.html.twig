@@ -1,5 +1,5 @@
 {% for video in videos %}
-    <div data-id="{{ video.code }}" class="col-3 mb-3 pl-2 pr-2 video-item">
+    <div data-id="{{ video.code }}" {% if service %} data-service="{{ service }}" {% endif %} class="col-3 mb-3 pl-2 pr-2 video-item">
         <div style="position:relative">
             <img width="100%" src="{{ video.poster|coaBucketBasename(video) }}" alt="">
             <div class="overlay">

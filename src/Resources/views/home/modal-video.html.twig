@@ -8,7 +8,9 @@
                     Recherche Video
                     <input type="hidden" value="{{ asset('bundles/coavideolibrary/images/not-available.png','coa_videolibrary_host') }}">
 
-                    <div class="ml-auto">
+
+                    <div class="ml-auto d-flex justify-content-center align-items-center">
+
                         <div class="search-wrapper">
                             <div class="input-holder">
                                 <input type="text" class="search-input" placeholder="Rechercher une video...">
@@ -16,10 +18,26 @@
                             </div>
                             <button class="close"></button>
                         </div>
+
+                        {% if container.getParameter('coa_videolibrary')["connections"] is defined %}
+                            <div class="mr-3">
+                                <select id="example-single" class="btn-primary search-service">
+                                    <option value="">Serveur local</option>
+                                    {% for key,connection in  container.getParameter('coa_videolibrary')["connections"] %}
+                                        <option value="{{ key }}">{{ connection.service }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
 
-                <div class="card-body" style="height:470px;overflow: auto;">
+                <div class="card-body position-relative" style="height:470px;overflow: auto;">
+
+                    <div style="text-align:center" class="loader">
+                        <i  class="fa fa-spinner fa-spin fa-4x text-dark"></i>
+                    </div>
+
                     <div class="row video-container"></div>
                 </div>
 

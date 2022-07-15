@@ -4,6 +4,9 @@ use Coa\VideolibraryBundle\Entity\Video;
 use Symfony\Component\Asset\Packages;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\AcceptHeader;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 
 class CoaVideolibraryService
@@ -13,16 +16,22 @@ class CoaVideolibraryService
     private MediaConvertService $mediaConvert;
     private S3Service $s3Service;
     private Packages $packages;
-
+    private RequestStack $requestStack;
+    private HttpClientInterface $httpClient;
 
     public function __construct(ContainerInterface $container,
                                 EntityManagerInterface $em, MediaConvertService $mediaConvert,
-                                S3Service $s3Service,Packages $packages){
+                                S3Service $s3Service,Packages $packages, RequestStack $requestStack, HttpClientInterface $httpClient){
         $this->container = $container;
         $this->em = $em;
         $this->mediaConvert = $mediaConvert;
         $this->s3Service = $s3Service;
         $this->packages = $packages;
+        $this->requestStack = $requestStack;
+        $this->httpClient = $httpClient->withOptions([
+            'verify_peer' => false,
+            'verify_host' => false
+        ]);
     }
 
     public function transcode(Video $video,string $video_baseurl, string $hls_key_baseurl){
@@ -268,5 +277,78 @@ class CoaVideolibraryService
 //            unset($job);
 //        }
         return $result;
+    }
+
+    public function search(){
+        $request = $this->requestStack->getCurrentRequest();
+        $video_entity = $this->container->getParameter('coa_videolibrary.video_entity');
+        $rep = $this->em->getRepository($video_entity);
+        $limit = $request->query->get("limit",20);
+        $offset = $request->query->get("offset",0);
+        $term = trim($request->query->get("q"));
+        $qb = $this->em->createQueryBuilder()
+            ->from($video_entity,'v')
+            ->select('v');
+
+        if($term){
+            $qb
+                ->andWhere($qb->expr()->like("v.originalFilename",':q'))
+                ->setParameter('q',"%".$term."%");
+        }
+
+        if($request->query->get("__source") == "modal-search"){
+            $qb
+                ->andWhere("v.state = :state")
+                ->setParameter("state","COMPLETE");
+        }
+
+        return $qb->orderBy("v.id","DESC")
+            ->getQuery()
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getResult();
+    }
+
+    public function searchInConstellation(string $service, array $params = []){
+        $data = [];
+        $connections = $this->container->getParameter("coa_videolibrary.connections");
+        $video_entity = $this->container->getParameter('coa_videolibrary.video_entity');
+
+        if($connections && array_key_exists($service,$connections)){
+
+            $connection = $connections[$service];
+
+            $response = $this->httpClient->request('GET',
+                sprintf("%s%s",$connection["domain"],$connection["endpoint"]),
+                [
+                    'query' => array_merge($this->requestStack->getCurrentRequest()->query->all(),$params)
+                ]
+            );
+            if($response->getStatusCode() == 200){
+                $output = json_decode($response->getContent(),true);
+
+                if(@$output["payload"]){
+                    $output = $output["payload"];
+                    foreach ($output as $el){
+
+                        $item = new $video_entity();
+                        foreach ($el as $k=>$v){
+                            if(in_array($k,["authorId","id"])) continue;
+                            elseif ($k == "encrypted"){
+                                $v = $v??true;
+                            }
+                            elseif(in_array($k,["createdAt","jobStartTime","jobSubmitTime","jobFinishTime"])){
+                                $v = \DateTimeImmutable::createFromMutable((new \DateTime())->setTimestamp($v));
+                            }
+
+                            $method = "set".ucfirst($k);
+                            $item->$method($v);
+                        }
+                        $data[] = $item;
+                    }
+                }
+            }
+        }
+        return $data;
     }
 }

@@ -211,7 +211,9 @@ var Aaz = Aaz || {};
          * @param term lorsqu'on recherche un nom particulier
          * @returns {Promise<unknown>}
          */
-        VideoSearchModal.prototype.loadVideos = function (limit,offset,term){
+        VideoSearchModal.prototype.loadVideos = function (limit,offset,term,service){
+
+            this.modal.addClass('requesting');
             return new Promise((resolve,reject)=>{
                 $.ajax({
                     url:this.params.endpoint,
@@ -219,16 +221,20 @@ var Aaz = Aaz || {};
                         offset:offset,
                         limit:limit,
                         q:term,
+                        service:service,
                         __source:this.params.__source
                     },
                     method:"GET",
                     headers:{accept:"text/html"},
                     dataType:"text",
-                    success:function(data){
+                    success:(data)=>{
                         resolve(data);
                     },
-                    error:function(a,b,c){
+                    error:(a,b,c)=>{
                         reject("Oops un probleme est survenu, veuillez réessayer ulterieurement")
+                    },
+                    complete:()=>{
+                        this.modal.removeClass('requesting');
                     }
                 })
             });
@@ -268,6 +274,7 @@ var Aaz = Aaz || {};
              * "Charger une video"
              */
             let search_input = this.modal.find(".search-input");
+            let search_service = this.modal.find(".search-service");
             let search_input_timer = null;
             search_input.on({
                 keyup:(e)=>{
@@ -278,7 +285,8 @@ var Aaz = Aaz || {};
 
                     if(prevValue != e.target.value){
                         search_input_timer = setTimeout(()=>{
-                            this.loadVideos(50,0,e.target.value)
+
+                            this.loadVideos(50,0,e.target.value, search_service.val())
                                 .then(d=>{
                                     this.emit(new nsp.Event('found',{data:d, term:e.target.value}));
                                 },err=>{
@@ -289,6 +297,29 @@ var Aaz = Aaz || {};
                     search_input.attr("data-prevvalue",e.target.value)
                 }
             });
+
+            /**
+             * gestion de la zone des constellation
+             */
+            search_service.on({
+                change:(e)=>{
+                    if(search_input_timer)
+                        clearTimeout(search_input_timer);
+
+                    search_input_timer = setTimeout(()=>{
+
+                        this.loadVideos(50,0,search_input.val(), search_service.val())
+                            .then(d=>{
+                                this.emit(new nsp.Event('found',{data:d, term:search_input.val()}));
+                            },err=>{
+                                this.emit(new nsp.Event('not-found',{term:search_input.val()}));
+                            })
+                    },500);
+
+                }
+            });
+
+
 
             // clic sur chaque vignette dans la modal
             this.modal.on("click",".video-item button",(e)=>{
@@ -305,7 +336,7 @@ var Aaz = Aaz || {};
                         break;
 
                     case "open":
-                        this.loadVideos(20,0)
+                        this.loadVideos(20,0,"",search_service.val())
                             .then(data=>{
                                 this.modal.find('.video-container').html(data);
                             },err=>{

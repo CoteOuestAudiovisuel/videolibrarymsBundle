@@ -24,9 +24,10 @@ class CoaVideolibraryExtension extends Extension implements PrependExtensionInte
             $container->setParameter("coa_videolibrary.$k", $v);
         }
 
-        $twigConfig = [];
+        $twigConfig = ["globals"=>["container"=>"@service_container"]];
         $twigConfig['paths'][__DIR__.'/../Resources/views'] = "coa_videolibrary";
         $twigConfig['paths'][__DIR__.'/../Resources/public'] = "coa_videolibrary.public";
+
         $container->prependExtensionConfig('twig', $twigConfig);
     }
 
@@ -99,7 +100,7 @@ class CoaVideolibraryExtension extends Extension implements PrependExtensionInte
             file_put_contents($gitignore_path, implode("\n",$ignoresData));
         }
 
-        $twigConfig = [];
+        $twigConfig = ["globals"=>["container"=>"@service_container"]];
         $twigConfig['paths'][__DIR__.'/../Resources/views'] = "coa_videolibrary";
         $twigConfig['paths'][__DIR__.'/../Resources/public'] = "coa_videolibrary.public";
         $container->prependExtensionConfig('twig', $twigConfig);
