@@ -9,3 +9,8 @@ coa_videolibrary:
   hls_key_baseurl: ~
   video_entity: ~
   prefix: ~
+  constellation:
+    name: ~
+    id: ~
+    enabled: ~
+    token: ~

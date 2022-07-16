@@ -355,17 +355,22 @@ class CoaVideolibraryService
 
     public function searchInConstellation(string $service, array $params = []){
         $data = [];
-        $connections = $this->container->getParameter("coa_videolibrary.connections");
+        $constellation = $this->container->getParameter("coa_videolibrary.constellation");
+        $connections = @$constellation["connections"];
         $video_entity = $this->container->getParameter('coa_videolibrary.video_entity');
+        $xuser = @$constellation["id"];
+        $xtoken = @$constellation["token"];
 
         if($connections && array_key_exists($service,$connections)){
-
             $connection = $connections[$service];
-
             $response = $this->httpClient->request('GET',
                 sprintf("%s%s",$connection["domain"],$connection["endpoint"]),
                 [
-                    'query' => array_merge($this->requestStack->getCurrentRequest()->query->all(),$params)
+                    'query' => array_merge($this->requestStack->getCurrentRequest()->query->all(),$params),
+                    'headers' => [
+                        'X-User' => $xuser,
+                        'X-Token' => $xtoken
+                    ]
                 ]
             );
             if($response->getStatusCode() == 200){

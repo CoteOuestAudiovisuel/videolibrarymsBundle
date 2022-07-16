@@ -21,7 +21,14 @@ class VideolibraryConstellationController extends AbstractController
      * @param CoaVideolibraryService $coaVideolibrary
      * @return Response
      */
-    public function search(CoaVideolibraryService $coaVideolibrary):JsonResponse{
+    public function search(CoaVideolibraryService $coaVideolibrary, Request $request):JsonResponse{
+        $xuser = $request->headers->get("X-User");
+        $xtoken = $request->headers->get("X-Token");
+        $constellation = $this->container->getParameter("coa_videolibrary.constellation");
+
+        if(!hash_equals(@$constellation["connections"][$xuser]["token"],$xtoken)){
+            return $this->json(["message"=>"vous n'êtes pas autorisé a éffectuer cette action"],403);
+        }
         return $this->json($coaVideolibrary->searchWithJsonResult());
     }
 }

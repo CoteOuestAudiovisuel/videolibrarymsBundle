@@ -19,11 +19,11 @@
                             <button class="close"></button>
                         </div>
 
-                        {% if container.getParameter('coa_videolibrary')["connections"] is defined %}
+                        {% if container.getParameter('coa_videolibrary')["constellation"]["connections"] is defined %}
                             <div class="mr-3">
                                 <select id="example-single" class="btn-primary search-service">
                                     <option value="">Serveur local</option>
-                                    {% for key,connection in  container.getParameter('coa_videolibrary')["connections"] %}
+                                    {% for key,connection in  container.getParameter('coa_videolibrary')["constellation"]["connections"] %}
                                         <option value="{{ key }}">{{ connection.service }}</option>
                                     {% endfor %}
                                 </select>
