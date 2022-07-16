@@ -282,10 +282,11 @@ class CoaVideolibraryService
     public function search(){
         $request = $this->requestStack->getCurrentRequest();
         $video_entity = $this->container->getParameter('coa_videolibrary.video_entity');
-        $rep = $this->em->getRepository($video_entity);
         $limit = $request->query->get("limit",20);
         $offset = $request->query->get("offset",0);
         $term = trim($request->query->get("q"));
+        $code = trim($request->query->get("code"));
+
         $qb = $this->em->createQueryBuilder()
             ->from($video_entity,'v')
             ->select('v');
@@ -302,11 +303,54 @@ class CoaVideolibraryService
                 ->setParameter("state","COMPLETE");
         }
 
-        return $qb->orderBy("v.id","DESC")
+        if($code){
+            $qb
+                ->andWhere("v.code = :code")
+                ->setParameter("code",$code);
+        }
+
+        return $qb
+            ->orderBy("v.id","DESC")
             ->getQuery()
             ->setFirstResult($offset)
             ->setMaxResults($limit)
             ->getResult();
+    }
+
+    public function searchWithJsonResult(){
+        $data = $this->search();
+        $result = [];
+
+        foreach ($data as $el){
+            $result["payload"][] = [
+                "id"=>$el->getId(),
+                "authorId"=>$el->getAuthor() ? $el->getAuthor()->getId() : null,
+                "code"=>$el->getCode(),
+                "originalFilename"=>$el->getOriginalFilename(),
+                "fileSize"=>$el->getFileSize(),
+                "state"=>$el->getState(),
+                "isTranscoded"=>$el->getIsTranscoded(),
+                "poster"=>$el->getPoster(),
+                "download"=>$el->getDownload(),
+                "screenshots"=>$el->getScreenshots(),
+                "webvtt"=>$el->getWebvtt(),
+                "manifest"=>$el->getManifest(),
+                "duration"=>$el->getDuration(),
+                "createdAt"=>$el->getCreatedAt() ? $el->getCreatedAt()->getTimestamp() : null,
+                "jobRef"=>$el->getJobRef(),
+                "variants"=>$el->getVariants(),
+                "jobStartTime"=>$el->getJobStartTime() ? $el->getJobStartTime()->getTimestamp() : null,
+                "jobSubmitTime"=>$el->getJobSubmitTime() ? $el->getJobSubmitTime()->getTimestamp() : null,
+                "jobFinishTime"=> $el->getJobFinishTime() ? $el->getJobFinishTime()->getTimestamp() : null,
+                "bucket"=>$el->getBucket(),
+                "region"=>$el->getRegion(),
+                "jobPercent"=>$el->getJobPercent(),
+                "encrypted"=>$el->getEncrypted(),
+                "useFor"=>$el->getUseFor(),
+                "provider"=>$el->getProvider()
+            ];
+        }
+        return $result;
     }
 
     public function searchInConstellation(string $service, array $params = []){
