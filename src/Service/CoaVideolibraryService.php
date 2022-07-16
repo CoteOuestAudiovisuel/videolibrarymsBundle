@@ -373,6 +373,7 @@ class CoaVideolibraryService
                     ]
                 ]
             );
+
             if($response->getStatusCode() == 200){
                 $output = json_decode($response->getContent(),true);
 
