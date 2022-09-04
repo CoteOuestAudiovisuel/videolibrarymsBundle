@@ -9,7 +9,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 
 
 class CoaVideolibraryTranscodeCommand extends Command
@@ -17,11 +17,11 @@ class CoaVideolibraryTranscodeCommand extends Command
     protected static $defaultName = 'coa:videolibrary:transcode';
     protected static $defaultDescription = 'commande de transcodage des fichiers uploadés';
     private EntityManagerInterface $em;
-    private ContainerInterface $container;
+    private ContainerBagInterface $container;
     private CoaVideolibraryService $coaVideolibrary;
 
     public function __construct(string $name = null, EntityManagerInterface $em,
-                                ContainerInterface $container, CoaVideolibraryService $coaVideolibrary)
+                                ContainerBagInterface $container, CoaVideolibraryService $coaVideolibrary)
     {
         parent::__construct($name);
         $this->em = $em;
@@ -42,7 +42,7 @@ class CoaVideolibraryTranscodeCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $io->title("Transcode des videos en attente");
-        $video_entity = $this->container->getParameter('coa_videolibrary.video_entity');
+        $video_entity = $this->container->get('coa_videolibrary.video_entity');
         $rep = $this->em->getRepository($video_entity);
         $limit = $input->getOption("limit");
         $video_baseurl = $input->getOption("video-baseurl");

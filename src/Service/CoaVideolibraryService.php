@@ -2,26 +2,30 @@
 namespace Coa\VideolibraryBundle\Service;
 use Coa\VideolibraryBundle\Entity\Video;
 use Symfony\Component\Asset\Packages;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
+
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\AcceptHeader;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Twig\Environment;
 
 
 class CoaVideolibraryService
 {
-    private ContainerInterface $container;
+    private ContainerBagInterface $container;
     private EntityManagerInterface $em;
     private MediaConvertService $mediaConvert;
     private S3Service $s3Service;
     private Packages $packages;
     private RequestStack $requestStack;
     private HttpClientInterface $httpClient;
+    private Environment $twig;
 
-    public function __construct(ContainerInterface $container,
+    public function __construct(ContainerBagInterface $container,
                                 EntityManagerInterface $em, MediaConvertService $mediaConvert,
-                                S3Service $s3Service,Packages $packages, RequestStack $requestStack, HttpClientInterface $httpClient){
+                                S3Service $s3Service,Packages $packages, RequestStack $requestStack,
+                                HttpClientInterface $httpClient, Environment $twig){
         $this->container = $container;
         $this->em = $em;
         $this->mediaConvert = $mediaConvert;
@@ -32,10 +36,11 @@ class CoaVideolibraryService
             'verify_peer' => false,
             'verify_host' => false
         ]);
+        $this->twig = $twig;
     }
 
     public function transcode(Video $video,string $video_baseurl, string $hls_key_baseurl){
-        $videosPath = $this->container->getParameter('kernel.project_dir') . "/public/coa_videolibrary_upload";
+        $videosPath = $this->container->get('kernel.project_dir') . "/public/coa_videolibrary_upload";
 
         $code = $video->getCode();
         $withEncryption = $video->getEncrypted();
@@ -44,9 +49,9 @@ class CoaVideolibraryService
 
         $inputfile = $video_baseurl.'/coa_videolibrary_upload/'.$code.'.mp4';
         $keyfilename = $code;
-        $bucket = $this->container->getParameter("coa_videolibrary.s3_bucket");
-        $region = $this->container->getParameter("coa_videolibrary.aws_region");
-        $keyurl = $hls_key_baseurl.$this->container->getParameter("coa_videolibrary.keys_route") . "/" . $keyfilename;
+        $bucket = $this->container->get("coa_videolibrary.s3_bucket");
+        $region = $this->container->get("coa_videolibrary.aws_region");
+        $keyurl = $hls_key_baseurl.$this->container->get("coa_videolibrary.keys_route") . "/" . $keyfilename;
 
         try {
             $job = $this->mediaConvert->createJob($inputfile,$keyfilename,$keyurl,$bucket,$withEncryption);
@@ -68,10 +73,10 @@ class CoaVideolibraryService
      * ensuite deplace le fichier du dossier ftp au dossier de transcoding
      */
     public function FtpSync(){
-        $video_entity = $this->container->getParameter('coa_videolibrary.video_entity');
+        $video_entity = $this->container->get('coa_videolibrary.video_entity');
         $rep = $this->em->getRepository($video_entity);
-        $ftpPath = $this->container->getParameter('kernel.project_dir') . "/coa_videolibrary_ftp";
-        $destPath = $this->container->getParameter('kernel.project_dir') . "/public/coa_videolibrary_upload";
+        $ftpPath = $this->container->get('kernel.project_dir') . "/coa_videolibrary_ftp";
+        $destPath = $this->container->get('kernel.project_dir') . "/public/coa_videolibrary_upload";
 
         if(!file_exists($ftpPath)){
             mkdir($ftpPath);
@@ -122,9 +127,9 @@ class CoaVideolibraryService
      */
     public function getStatus(int $maxResults){
 
-        $video_entity = $this->container->getParameter('coa_videolibrary.video_entity');
+        $video_entity = $this->container->get('coa_videolibrary.video_entity');
         $rep = $this->em->getRepository($video_entity);
-        $basedir = $this->container->getParameter('kernel.project_dir') . "/public/coa_videolibrary_upload";
+        $basedir = $this->container->get('kernel.project_dir') . "/public/coa_videolibrary_upload";
         $result = ["payload"=>[]];
 
         if(($videos = $rep->findBy(["state"=>["PROGRESSING","SUBMITTED"]],["id"=>"ASC"],$maxResults))) {
@@ -196,7 +201,7 @@ class CoaVideolibraryService
                         @unlink($filename);
                     }
                 }
-                $job["html"] = $this->container->get("twig")->render("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
+                $job["html"] = $this->twig->render("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
             }
         }
 
@@ -270,7 +275,7 @@ class CoaVideolibraryService
 //                            @unlink($filename);
 //                        }
 //                    }
-//                    $job["html"] = $this->container->get("twig")->render("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
+//                    $job["html"] = $this->twig->render("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
 //
 //                }
 //            }
@@ -281,7 +286,7 @@ class CoaVideolibraryService
 
     public function search(){
         $request = $this->requestStack->getCurrentRequest();
-        $video_entity = $this->container->getParameter('coa_videolibrary.video_entity');
+        $video_entity = $this->container->get('coa_videolibrary.video_entity');
         $limit = $request->query->get("limit",20);
         $offset = $request->query->get("offset",0);
         $term = trim($request->query->get("q"));
@@ -355,9 +360,9 @@ class CoaVideolibraryService
 
     public function searchInConstellation(string $service, array $params = []){
         $data = [];
-        $constellation = $this->container->getParameter("coa_videolibrary.constellation");
+        $constellation = $this->container->get("coa_videolibrary.constellation");
         $connections = @$constellation["connections"];
-        $video_entity = $this->container->getParameter('coa_videolibrary.video_entity');
+        $video_entity = $this->container->get('coa_videolibrary.video_entity');
         $xuser = @$constellation["id"];
         $xtoken = @$constellation["token"];
 

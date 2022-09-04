@@ -6,7 +6,7 @@ use Aws\S3\S3Client;
 use Aws\ResultPaginator;
 use Aws\S3\Exception\S3Exception;
 use Aws\Exception\AwsException;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 
 
 class S3Service
@@ -14,19 +14,19 @@ class S3Service
     protected string $region;
     protected string $version;
     private static S3Client $client;
-    private ContainerInterface $container;
+    private ContainerBagInterface $container;
 
 
-    public function __construct(ContainerInterface $container){
+    public function __construct(ContainerBagInterface $container){
         $this->container = $container;
 
         $env = getenv();
         if(!isset($env["AWS_ACCESS_KEY_ID"])){
-            putenv(sprintf("%s=%s","AWS_ACCESS_KEY_ID",$container->getParameter("coa_videolibrary.aws_access_key_id")));
+            putenv(sprintf("%s=%s","AWS_ACCESS_KEY_ID",$container->get("coa_videolibrary.aws_access_key_id")));
         }
 
         if(!isset($env["AWS_SECRET_ACCESS_KEY"])){
-            putenv(sprintf("%s=%s","AWS_SECRET_ACCESS_KEY",$container->getParameter("coa_videolibrary.aws_secret_access_key")));
+            putenv(sprintf("%s=%s","AWS_SECRET_ACCESS_KEY",$container->get("coa_videolibrary.aws_secret_access_key")));
         }
     }
 
@@ -38,7 +38,7 @@ class S3Service
 
         $client = new S3Client([
             'version' => 'latest',
-            'region' => $this->container->getParameter("coa_videolibrary.aws_region")
+            'region' => $this->container->get("coa_videolibrary.aws_region")
         ]);
 
         self::$client = $client;
@@ -141,7 +141,7 @@ class S3Service
     public function listObjects(string $bucket,string $prefix): ResultPaginator{
 
         $s3 = new S3Client([
-            'region' => $this->container->getParameter("coa_videolibrary.aws_region"),
+            'region' => $this->container->get("coa_videolibrary.aws_region"),
             'version' => 'latest',
         ]);
 

@@ -1,6 +1,7 @@
 <?php
 namespace Coa\VideolibraryBundle\Service;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
+
 use Aws\MediaConvert\MediaConvertClient;
 use Aws\Exception\AwsException;
 use Aws\Result;
@@ -9,20 +10,20 @@ use Aws\S3\S3Client;
 class MediaConvertService
 {
     private static MediaConvertClient $client;
-    private ContainerInterface $container;
+    private ContainerBagInterface $container;
     private S3Service $s3Service;
 
 
-    public function __construct(ContainerInterface $container,S3Service $s3Service){
+    public function __construct(ContainerBagInterface $container,S3Service $s3Service){
         $this->container = $container;
 
         $env = getenv();
         if(!isset($env["AWS_ACCESS_KEY_ID"])){
-            putenv(sprintf("%s=%s","AWS_ACCESS_KEY_ID",$container->getParameter("coa_videolibrary.aws_access_key_id")));
+            putenv(sprintf("%s=%s","AWS_ACCESS_KEY_ID",$container->get("coa_videolibrary.aws_access_key_id")));
         }
 
         if(!isset($env["AWS_SECRET_ACCESS_KEY"])){
-            putenv(sprintf("%s=%s","AWS_SECRET_ACCESS_KEY",$container->getParameter("coa_videolibrary.aws_secret_access_key")));
+            putenv(sprintf("%s=%s","AWS_SECRET_ACCESS_KEY",$container->get("coa_videolibrary.aws_secret_access_key")));
         }
         $this->s3Service = $s3Service;
     }
@@ -103,7 +104,7 @@ class MediaConvertService
 
         $client = new MediaConvertClient([
             'version' => "latest",
-            'region' => $this->container->getParameter("coa_videolibrary.aws_region"),
+            'region' => $this->container->get("coa_videolibrary.aws_region"),
         ]);
 
         $result = $client->describeEndpoints([]);
@@ -121,8 +122,8 @@ class MediaConvertService
 
         $client = new MediaConvertClient([
             'version' => "latest",
-            'region' => $this->container->getParameter("coa_videolibrary.aws_region"),
-            'endpoint' => $this->container->getParameter("coa_videolibrary.mediaconvert_endpoint")
+            'region' => $this->container->get("coa_videolibrary.aws_region"),
+            'endpoint' => $this->container->get("coa_videolibrary.mediaconvert_endpoint")
         ]);
         self::$client = $client;
 
@@ -208,7 +209,7 @@ class MediaConvertService
         try {
             $client = $this->buildClient();
             $payload = file_get_contents(__DIR__ . '/../Resources/views/job.json');
-            $keys_folder = $this->container->getParameter('kernel.project_dir')."/coa_videolibrary_keys";
+            $keys_folder = $this->container->get('kernel.project_dir')."/coa_videolibrary_keys";
 
             $timecodes = [20,30,45,50,60,90];
             $timecode = $timecodes[random_int(0,count($timecodes)-1)];
@@ -241,7 +242,7 @@ class MediaConvertService
             }
 
             $p = array_merge($jobSetting,[
-                "Role" => $this->container->getParameter("coa_videolibrary.mediaconvert_role_arn"),
+                "Role" => $this->container->get("coa_videolibrary.mediaconvert_role_arn"),
                 "UserMetadata" => [
                     "Customer" => "Kiwi",
                     "Env" => "dev"
