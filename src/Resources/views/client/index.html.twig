@@ -1,0 +1,70 @@
+{% block body %}
+    <div class="main-card card mb-3">
+        <div class="card-body">
+            <div class="row flex-row mb-3">
+                <div class="col-12 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Liste des clients</h5>
+
+                    <div>
+                        <a id="videolibrary-upload" href="{{ path('coa_videolibrary_client_add') }}" class="btn btn-secondary btn-sm">
+                            <i class="fa fa-plus-circle"></i>&nbsp;
+                            Ajouter
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <table id="videolibrary_table" class="table table-hover table-striped table-bordered">
+                        <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Client Id</th>
+                            <th>Scope</th>
+                            <th>Grant type</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for client in clients %}
+                            <tr>
+                                <td>{{ client.name }}</td>
+                                <td>{{ client.clientId }}</td>
+                                <td>
+                                    {% for scope in client.scopes %}
+                                        {{ scope.label ~ ' ' }}
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% for grant in client.grantTypes %}
+                                        {{ grant.label ~ ' ' }}
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    <p class="mb-1">
+                                        <a href="{{ path('coa_videolibrary_client_edit', {id: client.id}) }}" class="text-primary font-weight-bolder font-size-xs">
+                                            <i class="fa fa-edit"></i> Modifier
+                                        </a>
+                                    </p>
+                                    <div class="mb-1">
+                                        <a href="#" data-toggle="modal"
+                                           data-target="#exampleModal" data-form="client{{ client.id }}" class="delete-action text-danger font-weight-bolder font-size-xs">
+                                            <i class="fa fa-trash"></i> Supprimer
+                                        </a>
+                                        <form method="post" id="client{{ client.id }}" action="{{ path('coa_videolibrary_client_delete', {id: client.id}) }}" class="d-none">
+                                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('client' ~ client.id) }}">
+                                            <input type="submit" value="supprimer">
+                                        </form>
+                                    </div>
+
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}

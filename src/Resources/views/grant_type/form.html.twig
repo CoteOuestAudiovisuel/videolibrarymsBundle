@@ -1,0 +1,29 @@
+{% block body %}
+    <div class="row">
+        <div class="mx-auto col-12">
+            <div class="main-card card mb-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ type == "add" ? "Ajout" : "Modification" }} des grant types</h5>
+                </div>
+                {{ form_start(form) }}
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                {{ form_row(form.name) }}
+                            </div>
+                            <div class="col-6">
+                                {{ form_row(form.label) }}
+                            </div>
+                            <div class="col-12">
+                                {{ form_row(form.description) }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="mt-1 btn btn-lg btn-wide btn-secondary">{{ type == "add" ? "Ajouter" : "Modifier" }}</button>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% block body %}
+    <div class="row">
+        <div class="mx-auto col-12">
+            <div class="main-card card mb-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ type == "add" ? "Ajout" : "Modification" }} des clients</h5>
+                </div>
+                {{ form_start(form) }}
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="row">
+                                    <div class="col-12">
+                                        {{ form_row(form.grantTypes) }}
+                                        {{ form_row(form.name) }}
+                                        {% if type == 'edit' %}
+                                            <div class="mb-3">
+                                                <label class="form-label required">Client secret</label>
+                                                <input type="text" class="form-control disabled" value="{{ client.clientSecret }}" disabled>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="row">
+                                    <div class="col-12">
+                                        {{ form_row(form.postbackUrl) }}
+                                        {{ form_row(form.scopes) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="mt-1 btn btn-lg btn-wide btn-secondary">{{ type == "add" ? "Ajouter" : "Modifier" }}</button>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

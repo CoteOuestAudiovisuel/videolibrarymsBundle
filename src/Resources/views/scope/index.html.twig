@@ -1,0 +1,60 @@
+{% block body %}
+    <div class="main-card card mb-3">
+        <div class="card-body">
+            <div class="row flex-row mb-3">
+                <div class="col-12 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Liste des scopes</h5>
+
+                    <div>
+                        <a id="videolibrary-upload" href="{{ path('coa_videolibrary_scope_add') }}" class="btn btn-secondary btn-sm">
+                            <i class="fa fa-plus-circle"></i>&nbsp;
+                            Ajouter
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <table style="width: 100%;" id="example" class="table table-hover table-striped table-bordered">
+                        <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>label</th>
+                            <th>Desription</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for scope in scopes %}
+                            <tr>
+                                <td>{{ scope.name }}</td>
+                                <td>{{ scope.label }}</td>
+                                <td>{{ scope.description }}</td>
+                                <td>
+                                    <p class="mb-1">
+                                        <a href="{{ path('coa_videolibrary_scope_edit', {id: scope.id}) }}" class="text-primary font-weight-bolder font-size-xs">
+                                            <i class="fa fa-edit"></i> Modifier
+                                        </a>
+                                    </p>
+                                    <div class="mb-1">
+                                        <a href="#" data-toggle="modal"
+                                           data-target="#exampleModal" data-form="scope{{ scope.id }}" class="delete-action text-danger font-weight-bolder font-size-xs">
+                                            <i class="fa fa-trash"></i> Supprimer
+                                        </a>
+                                        <form method="post" id="scope{{ scope.id }}" action="{{ path('coa_videolibrary_scope_delete', {id: scope.id}) }}" class="d-none">
+                                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('scope' ~ scope.id) }}">
+                                            <input type="submit" value="supprimer">
+                                        </form>
+                                    </div>
+
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}

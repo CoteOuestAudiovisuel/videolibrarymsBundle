@@ -61,3 +61,11 @@ services:
     Coa\VideolibraryBundle\EventListener\GlobalRequestListener:
         tags:
             - { name: kernel.event_listener, event: 'kernel.request' }
+
+    Coa\VideolibraryBundle\EventListener\ExceptionListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.exception }
+
+    coa_videolibrary.api_authenticator:
+        class: Coa\VideolibraryBundle\Security\ApiAuthenticator
+        autowire: true

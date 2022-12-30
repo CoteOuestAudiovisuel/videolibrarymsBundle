@@ -16,6 +16,7 @@ class CoaVideolibraryExtension extends Extension implements PrependExtensionInte
     {
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yaml');
+       // $loader->load('packages/twig.yaml');
 
         $config = $this->processConfiguration(new Configuration(), $configs);
         $container->setParameter('coa_videolibrary', $config);
@@ -101,6 +102,7 @@ class CoaVideolibraryExtension extends Extension implements PrependExtensionInte
         }
 
         $twigConfig = ["globals"=>["container"=>"@service_container"]];
+        $twigConfig['form_themes'] = ['bootstrap_5_layout.html.twig'];
         $twigConfig['paths'][__DIR__.'/../Resources/views'] = "coa_videolibrary";
         $twigConfig['paths'][__DIR__.'/../Resources/public'] = "coa_videolibrary.public";
         $container->prependExtensionConfig('twig', $twigConfig);
