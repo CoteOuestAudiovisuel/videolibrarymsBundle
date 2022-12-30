@@ -5,6 +5,7 @@ namespace Coa\VideolibraryBundle\Entity;
 
 use Coa\VideolibraryBundle\Entity\Traits\Timestampable;
 use Coa\VideolibraryBundle\Entity\Scope;
+use Coa\VideolibraryBundle\Entity\Video;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -77,12 +78,18 @@ class Client implements UserInterface
      */
     private $accessTokens;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Video::class, mappedBy="client")
+     */
+    private $videos;
+
     private $roles;
 
     public function __construct()
     {
         $this->scopes = new ArrayCollection();
         $this->accessTokens = new ArrayCollection();
+        $this->videos = new ArrayCollection();
         $this->roles = [];
     }
 
@@ -282,5 +289,22 @@ class Client implements UserInterface
     public function getUsername()
     {
         return $this->name;
+    }
+
+    /**
+     * @param mixed $videos
+     */
+    public function setVideos($videos): self
+    {
+        $this->videos = $videos;
+        return $this;
+    }
+
+    /**
+     * @return ArrayCollection
+     */
+    public function getVideos(): ArrayCollection
+    {
+        return $this->videos;
     }
 }

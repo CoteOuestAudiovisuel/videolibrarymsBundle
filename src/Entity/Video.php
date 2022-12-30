@@ -135,6 +135,11 @@ abstract class Video
      */
     private $provider;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Client::class, inversedBy="videos")
+     */
+    private $client;
+
 
 
 
@@ -442,5 +447,23 @@ abstract class Video
     {
         $this->useFor = $useFor;
         return $this;
+    }
+
+    /**
+     * @param mixed $client
+     * @return Video
+     */
+    public function setClient($client): self
+    {
+        $this->client = $client;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getClient()
+    {
+        return $this->client;
     }
 }
