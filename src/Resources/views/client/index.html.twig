@@ -22,6 +22,7 @@
                             <th>Client Id</th>
                             <th>Scope</th>
                             <th>Grant type</th>
+                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                         </thead>
@@ -39,6 +40,11 @@
                                     {% for grant in client.grantTypes %}
                                         {{ grant.label ~ ' ' }}
                                     {% endfor %}
+                                </td>
+                                <td>
+                                    <div class="mt-1 py-2 badge badge-{{ client.isEnabled ? 'success' : 'danger' }}">
+                                        {{ client.isEnabled ? 'Activé' : 'Désactivé' }}
+                                    </div>
                                 </td>
                                 <td>
                                     <p class="mb-1">

@@ -85,6 +85,11 @@ class Client implements UserInterface
 
     private $roles;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $isEnabled;
+
     public function __construct()
     {
         $this->scopes = new ArrayCollection();
@@ -306,5 +311,22 @@ class Client implements UserInterface
     public function getVideos(): ArrayCollection
     {
         return $this->videos;
+    }
+
+    /**
+     * @param mixed $isEnabled
+     */
+    public function setIsEnabled($isEnabled): self
+    {
+        $this->isEnabled = $isEnabled;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getIsEnabled(): ?bool
+    {
+        return filter_var($this->isEnabled, FILTER_VALIDATE_BOOLEAN);
     }
 }

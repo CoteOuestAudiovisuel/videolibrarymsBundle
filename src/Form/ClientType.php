@@ -17,6 +17,7 @@ class ClientType extends AbstractType
 {
     private $scopes = [];
     private $grantTypes = [];
+    private bool $isEnabled = true;
 
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
@@ -25,6 +26,7 @@ class ClientType extends AbstractType
         if ($client->getId()) {
             $this->scopes = $client->getScopes();
             $this->grantTypes = $client->getGrantTypes();
+            $this->isEnabled = $client->getIsEnabled();
         }
 
         $builder
@@ -77,6 +79,19 @@ class ClientType extends AbstractType
                     return [];
                 }
             ])
+            ->add('isEnabled', CheckboxType::class, [
+                    'required' => false,
+                    'label' => false,
+                    'attr' => [
+                        'checked' => $this->isEnabled ? true : false,
+                        'data-toggle' => 'toggle',
+                        'data-on' => 'Activé',
+                        'data-off' => 'Désactivé',
+                        'data-onstyle' => 'gradient-success',
+                        'data-offstyle' => 'gradient-danger'
+                    ]
+                ]
+            )
         ;
     }
 
