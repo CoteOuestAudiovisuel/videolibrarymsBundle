@@ -15,12 +15,13 @@
             </div>
             <div class="row">
                 <div class="col-12">
-                    <table style="width: 100%;" id="example" class="table table-hover table-striped table-bordered">
+                    <table style="width: 100%;" id="videolibrary_table" class="table table-hover table-striped table-bordered">
                         <thead>
                         <tr>
                             <th>Nom</th>
                             <th>label</th>
                             <th>Desription</th>
+                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                         </thead>
@@ -30,6 +31,11 @@
                                 <td>{{ grant_type.name }}</td>
                                 <td>{{ grant_type.label }}</td>
                                 <td>{{ grant_type.description }}</td>
+                                <td>
+                                    <div class="mt-1 py-2 badge badge-{{ grant_type.isEnabled ? 'success' : 'danger' }}">
+                                        {{ grant_type.isEnabled ? 'Activé' : 'Désactivé' }}
+                                    </div>
+                                </td>
                                 <td>
                                     <p class="mb-1">
                                         <a href="{{ path('coa_videolibrary_grant_type_edit', {id: grant_type.id}) }}" class="text-primary font-weight-bolder font-size-xs">
