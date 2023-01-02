@@ -11,6 +11,7 @@ use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -59,8 +60,15 @@ class ClientType extends AbstractType
                     return [];
                 }
             ])
-            ->add('postbackUrl', TextType::class, [
-                'label' => 'postback Url',
+            ->add('websiteUrl', UrlType::class, [
+                'label' => 'Website Url',
+                'attr' => [
+                    'placeholder' => 'Entrer l\'url du website'
+                ],
+                'required' => false
+            ])
+            ->add('postbackUrl', UrlType::class, [
+                'label' => 'Postback Url',
                 'attr' => [
                     'placeholder' => 'Entrer l\'url de postback'
                 ],

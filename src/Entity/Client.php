@@ -66,6 +66,11 @@ class Client implements UserInterface
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
+    private $websiteUrl;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
     private $postbackUrl;
 
     /**
@@ -335,5 +340,22 @@ class Client implements UserInterface
     public function getIsEnabled(): ?bool
     {
         return filter_var($this->isEnabled, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
+     * @param mixed $websiteUrl
+     */
+    public function setWebsiteUrl($websiteUrl): self
+    {
+        $this->websiteUrl = $websiteUrl;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getWebsiteUrl(): ?string
+    {
+        return $this->websiteUrl;
     }
 }
