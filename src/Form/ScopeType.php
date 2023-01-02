@@ -15,8 +15,15 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class ScopeType extends AbstractType
 {
+    private bool $isEnabled = true;
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        $scope = $builder->getData();
+
+        if($scope->getId()) {
+            $this->isEnabled = $scope->getIsEnabled();
+        }
+
         $builder
             ->add('name', TextType::class, [
                 'label' => 'Nom',
@@ -37,6 +44,19 @@ class ScopeType extends AbstractType
                 ],
                 'required' => false
             ])
+            ->add('isEnabled', CheckboxType::class, [
+                    'required' => false,
+                    'label' => false,
+                    'attr' => [
+                        'checked' => $this->isEnabled ? true : false,
+                        'data-toggle' => 'toggle',
+                        'data-on' => 'Activé',
+                        'data-off' => 'Désactivé',
+                        'data-onstyle' => 'gradient-success',
+                        'data-offstyle' => 'gradient-danger'
+                    ]
+                ]
+            )
         ;
 
     }

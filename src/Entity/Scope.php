@@ -45,9 +45,15 @@ class Scope
      */
     private $clients;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $isEnabled;
+
     public function __construct()
     {
         $this->clients = new ArrayCollection();
+        $this->isEnabled = true;
     }
 
     /**
@@ -139,4 +145,20 @@ class Scope
         return $this;
     }
 
+    /**
+     * @param mixed $isEnabled
+     */
+    public function setIsEnabled($isEnabled): self
+    {
+        $this->isEnabled = $isEnabled;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getIsEnabled(): ?bool
+    {
+        return filter_var($this->isEnabled, FILTER_VALIDATE_BOOLEAN);
+    }
 }

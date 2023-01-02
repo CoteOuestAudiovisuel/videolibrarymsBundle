@@ -21,6 +21,7 @@
                             <th>Nom</th>
                             <th>label</th>
                             <th>Desription</th>
+                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                         </thead>
@@ -30,6 +31,11 @@
                                 <td>{{ scope.name }}</td>
                                 <td>{{ scope.label }}</td>
                                 <td>{{ scope.description }}</td>
+                                <td>
+                                    <div class="mt-1 py-2 badge badge-{{ scope.isEnabled ? 'success' : 'danger' }}">
+                                        {{ scope.isEnabled ? 'Activé' : 'Désactivé' }}
+                                    </div>
+                                </td>
                                 <td>
                                     <p class="mb-1">
                                         <a href="{{ path('coa_videolibrary_scope_edit', {id: scope.id}) }}" class="text-primary font-weight-bolder font-size-xs">
