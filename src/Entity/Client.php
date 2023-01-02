@@ -8,6 +8,7 @@ use Coa\VideolibraryBundle\Entity\Scope;
 use Coa\VideolibraryBundle\Entity\Video;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -185,7 +186,10 @@ class Client implements UserInterface
      */
     public function getGrantTypes(): ?Collection
     {
-        return $this->grantTypes;
+        $criteria = Criteria::create()
+            ->andWhere(Criteria::expr()->eq('isEnabled', true));
+
+        return $this->grantTypes->matching($criteria);
     }
 
     public function addGrantType(GrantType $grantType): self
@@ -246,7 +250,10 @@ class Client implements UserInterface
      */
     public function getScopes(): Collection
     {
-        return $this->scopes;
+        $criteria = Criteria::create()
+            ->andWhere(Criteria::expr()->eq('isEnabled', true));
+
+        return $this->scopes->matching($criteria);
     }
 
     public function addScope(Scope $scope): self

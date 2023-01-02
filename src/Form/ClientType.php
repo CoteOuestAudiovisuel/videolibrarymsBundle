@@ -4,6 +4,7 @@ namespace Coa\VideolibraryBundle\Form;
 
 use Coa\VideolibraryBundle\Entity\Client;
 use Coa\VideolibraryBundle\Entity\Scope;
+use Doctrine\ORM\EntityRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\CallbackTransformer;
@@ -40,6 +41,10 @@ class ClientType extends AbstractType
                 'required' => false,
                 'label' => 'Grant Types',
                 'class' => \Coa\VideolibraryBundle\Entity\GrantType::class,
+                'query_builder' => function(EntityRepository $er) {
+                    return $er->createQueryBuilder('qb')
+                                ->andWhere('qb.isEnabled = true');
+                },
                 'choice_label' => 'name',
                 'multiple' => true,
                 'attr' => [
@@ -65,6 +70,10 @@ class ClientType extends AbstractType
                 'required' => false,
                 'label' => 'Scopes',
                 'class' => Scope::class,
+                'query_builder' => function(EntityRepository $er) {
+                    return $er->createQueryBuilder('qb')
+                        ->andWhere('qb.isEnabled = true');
+                },
                 'choice_label' => 'name',
                 'multiple' => true,
                 'attr' => [

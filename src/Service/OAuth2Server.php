@@ -117,6 +117,14 @@ class OAuth2Server
             );
         }
 
+        if(!$client->getIsEnabled()) {
+            throw new Oauth2Exception(
+                "client_disabled",
+                404,
+                "Le client est désactivé"
+            );
+        }
+
         if(!hash_equals($client->getClientSecret(), $client_secret)) {
             throw new Oauth2Exception(
                 "invalid_grant",
