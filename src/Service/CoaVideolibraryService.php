@@ -1,5 +1,6 @@
 <?php
 namespace Coa\VideolibraryBundle\Service;
+use Coa\VideolibraryBundle\Entity\Client;
 use Coa\VideolibraryBundle\Entity\Video;
 use Symfony\Component\Asset\Packages;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
@@ -200,6 +201,28 @@ class CoaVideolibraryService
                     if(file_exists($filename)){
                         @unlink($filename);
                     }
+
+                    //Traitement pour notifier au client le resultat
+                    $datas = [];
+                    $datas['payload'][] = $this->generateVideoPayload($video);
+
+                    $this->postBackProcess($video, $datas);
+
+                } elseif ($job["status"] == "PROGRESSING") {
+                    //Traitement pour notifier au client le resultat
+                    $datas = [];
+                    $datas['payload'][] = [
+                        "code"=>$video->getCode(),
+                        "originalFilename"=>$video->getOriginalFilename(),
+                        "fileSize"=>$video->getFileSize(),
+                        "state"=>$video->getState(),
+                        "createdAt"=>$video->getCreatedAt() ? $video->getCreatedAt()->getTimestamp() : null,
+                        "jobStartTime"=>$video->getJobStartTime() ? $video->getJobStartTime()->getTimestamp() : null,
+                        "jobSubmitTime"=>$video->getJobSubmitTime() ? $video->getJobSubmitTime()->getTimestamp() : null,
+                        "jobFinishTime"=> $video->getJobFinishTime() ? $video->getJobFinishTime()->getTimestamp() : null,
+                        "jobPercent"=>$video->getJobPercent()
+                    ];
+                    $this->postBackProcess($video, $datas);
                 }
                 $job["html"] = $this->twig->render("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
             }
@@ -405,5 +428,56 @@ class CoaVideolibraryService
             }
         }
         return $data;
+    }
+
+    private function generateVideoPayload(Video $el): array
+    {
+        return [
+            "id"=>$el->getId(),
+            "authorId"=>$el->getAuthor() ? $el->getAuthor()->getId() : null,
+            "code"=>$el->getCode(),
+            "originalFilename"=>$el->getOriginalFilename(),
+            "fileSize"=>$el->getFileSize(),
+            "state"=>$el->getState(),
+            "isTranscoded"=>$el->getIsTranscoded(),
+            "poster"=>$el->getPoster(),
+            "download"=>$el->getDownload(),
+            "screenshots"=>$el->getScreenshots(),
+            "webvtt"=>$el->getWebvtt(),
+            "manifest"=>$el->getManifest(),
+            "duration"=>$el->getDuration(),
+            "createdAt"=>$el->getCreatedAt() ? $el->getCreatedAt()->getTimestamp() : null,
+            "jobRef"=>$el->getJobRef(),
+            "variants"=>$el->getVariants(),
+            "jobStartTime"=>$el->getJobStartTime() ? $el->getJobStartTime()->getTimestamp() : null,
+            "jobSubmitTime"=>$el->getJobSubmitTime() ? $el->getJobSubmitTime()->getTimestamp() : null,
+            "jobFinishTime"=> $el->getJobFinishTime() ? $el->getJobFinishTime()->getTimestamp() : null,
+            "bucket"=>$el->getBucket(),
+            "region"=>$el->getRegion(),
+            "jobPercent"=>$el->getJobPercent(),
+            "encrypted"=>$el->getEncrypted(),
+            "useFor"=>$el->getUseFor(),
+            "provider"=>$el->getProvider()
+        ];
+
+    }
+
+    /*
+     * Permet de lancer le process pour informer le client
+     */
+    private function postBackProcess(Video $video, array $datas)
+    {
+        /** @var Client $client */
+        if($client = $video->getClient()) {
+            if($postBackUrl = $client->getPostbackUrl()) {
+
+                $this->httpClient->request("POST", $postBackUrl, [
+                    'headers' => [
+                        'Content-Type' => 'application/json'
+                    ],
+                    'json' => $datas
+                ]);
+            }
+        }
     }
 }
