@@ -11,14 +11,22 @@
                             <div class="col-6">
                                 <div class="row">
                                     <div class="col-12">
-                                        {{ form_row(form.grantTypes) }}
-                                        {{ form_row(form.name) }}
                                         {% if type == 'edit' %}
+                                            <div class="mb-3">
+                                                <label class="form-label required">Client Id</label>
+                                                <input type="text" class="form-control disabled" value="{{ client.clientId }}" disabled>
+                                            </div>
                                             <div class="mb-3">
                                                 <label class="form-label required">Client secret</label>
                                                 <input type="text" class="form-control disabled" value="{{ client.clientSecret }}" disabled>
                                             </div>
+                                            <div class="mb-3">
+                                                <label class="form-label required">Authorization</label>
+                                                <textarea class="form-control disabled" disabled>{{ client.clientToken }}</textarea>
+                                            </div>
+
                                         {% endif %}
+                                        {{ form_row(form.grantTypes) }}
                                     </div>
 
                                 </div>
@@ -26,6 +34,7 @@
                             <div class="col-6">
                                 <div class="row">
                                     <div class="col-12">
+                                        {{ form_row(form.name) }}
                                         {{ form_row(form.websiteUrl) }}
                                         {{ form_row(form.postbackUrl) }}
                                         {{ form_row(form.scopes) }}
