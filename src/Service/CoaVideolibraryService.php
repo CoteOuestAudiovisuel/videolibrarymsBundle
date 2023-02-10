@@ -7,7 +7,9 @@ use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\AcceptHeader;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Twig\Environment;
 
@@ -22,11 +24,13 @@ class CoaVideolibraryService
     private RequestStack $requestStack;
     private HttpClientInterface $httpClient;
     private Environment $twig;
+    private Security $security;
+    private ClientService $clientService;
 
     public function __construct(ContainerBagInterface $container,
                                 EntityManagerInterface $em, MediaConvertService $mediaConvert,
                                 S3Service $s3Service,Packages $packages, RequestStack $requestStack,
-                                HttpClientInterface $httpClient, Environment $twig){
+                                HttpClientInterface $httpClient, Environment $twig, Security $security, ClientService $clientService){
         $this->container = $container;
         $this->em = $em;
         $this->mediaConvert = $mediaConvert;
@@ -38,6 +42,8 @@ class CoaVideolibraryService
             'verify_host' => false
         ]);
         $this->twig = $twig;
+        $this->security = $security;
+        $this->clientService = $clientService;
     }
 
     public function transcode(Video $video,string $video_baseurl, string $hls_key_baseurl){
@@ -52,10 +58,10 @@ class CoaVideolibraryService
         $keyfilename = $code;
         $bucket = $this->container->get("coa_videolibrary.s3_bucket");
         $region = $this->container->get("coa_videolibrary.aws_region");
-        $keyurl = $hls_key_baseurl.$this->container->get("coa_videolibrary.keys_route") . "/" . $keyfilename;
+        $keyurl = $hls_key_baseurl."keys/" . $keyfilename;
 
         try {
-            $job = $this->mediaConvert->createJob($inputfile,$keyfilename,$keyurl,$bucket,$withEncryption);
+            $job = $this->mediaConvert->createJob($inputfile,$keyfilename,$keyurl,$bucket,$withEncryption, $video);
             $video->setJobRef($job["data"]["id"]);
             $video->setState("SUBMITTED");
         }catch (\Exception $e){
@@ -206,7 +212,7 @@ class CoaVideolibraryService
                     $datas = [];
                     $datas['payload'][] = $this->generateVideoPayload($video);
 
-                    $this->postBackProcess($video, $datas);
+                    $this->clientService->postBackProcess($video, $datas);
 
                 } elseif ($job["status"] == "PROGRESSING") {
                     //Traitement pour notifier au client le resultat
@@ -222,7 +228,7 @@ class CoaVideolibraryService
                         "jobFinishTime"=> $video->getJobFinishTime() ? $video->getJobFinishTime()->getTimestamp() : null,
                         "jobPercent"=>$video->getJobPercent()
                     ];
-                    $this->postBackProcess($video, $datas);
+                    $this->clientService->postBackProcess($video, $datas);
                 }
                 $job["html"] = $this->twig->render("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
             }
@@ -430,7 +436,7 @@ class CoaVideolibraryService
         return $data;
     }
 
-    private function generateVideoPayload(Video $el): array
+    static function generateVideoPayload(Video $el): array
     {
         return [
             "id"=>$el->getId(),
@@ -462,22 +468,137 @@ class CoaVideolibraryService
 
     }
 
-    /*
-     * Permet de lancer le process pour informer le client
-     */
-    private function postBackProcess(Video $video, array $datas)
-    {
-        /** @var Client $client */
-        if($client = $video->getClient()) {
-            if($postBackUrl = $client->getPostbackUrl()) {
 
-                $this->httpClient->request("POST", $postBackUrl, [
-                    'headers' => [
-                        'Content-Type' => 'application/json'
-                    ],
-                    'json' => $datas
-                ]);
-            }
+    private  function  getTargetDirectory(){
+        $basedir = $this->container->get('kernel.project_dir')."/public/coa_videolibrary_upload";
+        if(!file_exists($basedir)){
+            mkdir($basedir);
         }
+        return $basedir;
+    }
+
+    public function upload()
+    {
+        $request = $this->requestStack->getMainRequest();
+        $em = $this->em;
+        $video_entity = $this->getParameter("coa_videolibrary.video_entity");
+        $rep = $em->getRepository($video_entity);
+        $encrypted = filter_var($request->request->get('encryption',true),FILTER_VALIDATE_BOOLEAN);
+        $usefor = strtolower($request->request->get('usefor',''));
+        $usefor = in_array($usefor,["film","episode","clip"]) ? $usefor : "episode";
+
+        $targetDirectory = $this->getTargetDirectory();
+
+        $result = [
+            "status" => "fails",
+        ];
+        $file = $request->files->get("file");
+        $video_id = $request->request->get("video_id");
+
+        $content_range = $request->headers->get("content-range");
+        list($chunk_range, $total_size) = explode("/", substr($content_range, 5));
+        list($chunk_range_start, $chunk_range_end) = explode("-", $chunk_range);
+        $total_size = intval($total_size);
+        $chunk_range_start = intval($chunk_range_start);
+        $chunk_range_end = intval($chunk_range_end);
+        $is_end = ($chunk_range_end + 1 == $total_size);
+
+        $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $file_length = $file->getSize();
+
+
+        if ($video_id) {
+
+            if (!($video = $rep->findOneBy(["code"=>$video_id]))) {
+                $result['logs'] = "impossible de traiter cette requete";
+                $result['code'] = 404;
+                return $result;
+            }
+
+            $code = $video->getCode();
+            $chunk = $file->getContent();
+            $filepath = sprintf($targetDirectory . "/%s.mp4", $code);
+            file_put_contents($filepath, $chunk, FILE_APPEND);
+            $video->setFileSize($video->getFileSize() + $file_length);
+            $video->setEncrypted($encrypted);
+            $video->setUseFor($usefor);
+
+
+            if($is_end) {
+                $video->setState("pending");
+            }
+
+            $result["video_id"] = $video->getCode();
+            $result["status"] = "downloading";
+
+            if ($is_end) {
+                $result['status'] = "success";
+                $key_baseurl = $this->container->get("coa_videolibrary.hls_key_baseurl");
+                $baseurl = $request->getSchemeAndHttpHost();
+
+                if(!$key_baseurl){
+                    $key_baseurl = $baseurl;
+                }
+                else{
+                    $baseurl = $key_baseurl;
+                }
+
+                if($_ENV["APP_ENV"] == "prod"){
+                    $baseurl = $request->getSchemeAndHttpHost();
+                }
+
+                //$coaVideolibrary->transcode($video,$baseurl,$key_baseurl);
+                /*$video_ = $em->getRepository(Video::class)->find(5830);
+                $datas = $coaVideolibrary->generateVideoPayload($video_);
+                $coaVideolibrary->postBackProcess($video_, $datas);*/
+
+                $result["html"] = $this->twig->render("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
+            }
+
+            $em->persist($video);
+            $em->flush();
+        }
+        else{
+
+            if ($file->getMimeType() !== "video/mp4") {
+                $result['log'] = sprintf("Veuillez utiliser un fichier mp4, %s n'est pas un fichier valide", $originalFilename);
+                return $this->json($result,400);
+            }
+
+            $code = substr(trim(base64_encode(bin2hex(openssl_random_pseudo_bytes(32,$ok))),"="),0,32);
+            if(($code_prefix = $this->container->get("coa_videolibrary.prefix"))){
+                $code = sprintf("%s_%s",$code_prefix,$code);
+            }
+
+            $chunk = $file->getContent();
+            $filepath = sprintf($targetDirectory . "/%s.mp4", $code);
+            file_put_contents($filepath, $chunk, FILE_APPEND);
+
+
+
+            $video = new $video_entity();
+            $video->setCode($code);
+            $video->setOriginalFilename($originalFilename);
+            $video->setFileSize($file_length);
+            $video->setState("downloading");
+            $video->setIsTranscoded(false);
+            $video->setPoster(null);
+            $video->setScreenshots(null);
+            $video->setWebvtt(null);
+            $video->setManifest(null);
+            $video->setDuration(null);
+            $video->setCreatedAt(new \DateTimeImmutable());
+            $video->setAuthor(null);
+            $video->setEncrypted($encrypted);
+            $video->setUseFor($usefor);
+            $video->setClient($this->security->getUser());
+
+            $em->persist($video);
+            $em->flush();
+            $result["video_id"] = $video->getCode();
+            $result['status'] = "start";
+        }
+
+        return $result;
     }
 }

@@ -1,21 +1,33 @@
 <?php
 namespace Coa\VideolibraryBundle\Service;
+use Coa\VideolibraryBundle\Entity\Client;
+use Coa\VideolibraryBundle\Entity\Video;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 
 use Aws\MediaConvert\MediaConvertClient;
 use Aws\Exception\AwsException;
 use Aws\Result;
 use Aws\S3\S3Client;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class MediaConvertService
 {
     private static MediaConvertClient $client;
     private ContainerBagInterface $container;
     private S3Service $s3Service;
+    private HttpClientInterface $httpClient;
+    private ClientService $clientService;
 
 
-    public function __construct(ContainerBagInterface $container,S3Service $s3Service){
+    public function __construct(
+        ContainerBagInterface $container,S3Service $s3Service, HttpClientInterface $httpClient,
+        ClientService $clientService
+    ){
         $this->container = $container;
+        $this->httpClient = $httpClient->withOptions([
+            'verify_peer' => false,
+            'verify_host' => false
+        ]);
 
         $env = getenv();
         if(!isset($env["AWS_ACCESS_KEY_ID"])){
@@ -26,6 +38,7 @@ class MediaConvertService
             putenv(sprintf("%s=%s","AWS_SECRET_ACCESS_KEY",$container->get("coa_videolibrary.aws_secret_access_key")));
         }
         $this->s3Service = $s3Service;
+        $this->clientService = $clientService;
     }
 
     /**
@@ -202,7 +215,7 @@ class MediaConvertService
      *
      * creer une tache de transcodage
      */
-    public function createJob(string $inputfile, string $keyfilename, string $keyurl, string $bucket, bool $withEncryption = true){
+    public function createJob(string $inputfile, string $keyfilename, string $keyurl, string $bucket, bool $withEncryption = true, ?Video $video){
 
         $result = ["status"=>false];
 
@@ -224,6 +237,14 @@ class MediaConvertService
                     mkdir($keys_folder);
                 }
                 file_put_contents($keys_folder . "/" . $keyfilename, $keyval);
+
+                //Lancement du postback
+                $datas["action"] = "key_create";
+                $datas["payload"] = [
+                    "code" => $keyval,
+                    "value" => base64_encode($keyval)
+                ];
+                $this->clientService->postBackProcess($video, $datas);
 
                 $payload = str_replace("__KEYVAL__", bin2hex($keyval), $payload);
                 $payload = str_replace("__KEYURL__", $keyurl, $payload);

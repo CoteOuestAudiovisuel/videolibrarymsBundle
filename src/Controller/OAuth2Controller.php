@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/oauth2", name="coa_videolibrary_oauth2_")
+ * @Route("/oauth2/old", name="coa_videolibrary_oauth2_old_")
  */
 class OAuth2Controller extends AbstractController
 {

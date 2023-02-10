@@ -5,6 +5,7 @@ namespace Coa\VideolibraryBundle\Service;
 use Coa\VideolibraryBundle\Entity\AccessToken;
 use Coa\VideolibraryBundle\Entity\Client;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
