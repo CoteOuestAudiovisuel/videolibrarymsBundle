@@ -60,8 +60,8 @@ class ClientType extends AbstractType
                     return [];
                 }
             ])
-            ->add('websiteUrl', UrlType::class, [
-                'label' => 'Website Url',
+            ->add('domain', UrlType::class, [
+                'label' => 'Domaine',
                 'attr' => [
                     'placeholder' => 'Entrer l\'url du website'
                 ],
@@ -71,6 +71,13 @@ class ClientType extends AbstractType
                 'label' => 'Postback Url',
                 'attr' => [
                     'placeholder' => 'Entrer l\'url de postback'
+                ],
+                'required' => false
+            ])
+            ->add('hlsKeyBaseurl', UrlType::class, [
+                'label' => 'HLS Key Baseurl',
+                'attr' => [
+                    'placeholder' => 'Entrer l\'url des clés HLS'
                 ],
                 'required' => false
             ])

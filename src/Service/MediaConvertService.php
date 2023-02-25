@@ -1,5 +1,6 @@
 <?php
 namespace Coa\VideolibraryBundle\Service;
+use Coa\MessengerBundle\Messenger\Message\DefaulfMessage;
 use Coa\VideolibraryBundle\Entity\Client;
 use Coa\VideolibraryBundle\Entity\Video;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
@@ -8,6 +9,9 @@ use Aws\MediaConvert\MediaConvertClient;
 use Aws\Exception\AwsException;
 use Aws\Result;
 use Aws\S3\S3Client;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpStamp;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class MediaConvertService
@@ -17,11 +21,12 @@ class MediaConvertService
     private S3Service $s3Service;
     private HttpClientInterface $httpClient;
     private ClientService $clientService;
+    private MessageBusInterface $bus;
 
 
     public function __construct(
         ContainerBagInterface $container,S3Service $s3Service, HttpClientInterface $httpClient,
-        ClientService $clientService
+        ClientService $clientService, MessageBusInterface $bus
     ){
         $this->container = $container;
         $this->httpClient = $httpClient->withOptions([
@@ -39,6 +44,7 @@ class MediaConvertService
         }
         $this->s3Service = $s3Service;
         $this->clientService = $clientService;
+        $this->bus = $bus;
     }
 
     /**
@@ -241,10 +247,10 @@ class MediaConvertService
                 //Lancement du postback
                 $datas["action"] = "key_create";
                 $datas["payload"] = [
-                    "code" => $keyval,
-                    "value" => base64_encode($keyval)
+                    "code" => $keyval, //"aes" => "key" => "iv"
+                     "value" => base64_encode($keyval)
                 ];
-                $this->clientService->postBackProcess($video, $datas);
+                //$this->clientService->postBackProcess($video, $datas);
 
                 $payload = str_replace("__KEYVAL__", bin2hex($keyval), $payload);
                 $payload = str_replace("__KEYURL__", $keyurl, $payload);
@@ -270,10 +276,53 @@ class MediaConvertService
                 ],
             ]);
 
+            //TODO: A decommenter à la fin de l'exercice
             $job = $client->createJob($p);
-
             $result["data"] = $this->formatJob($job["Job"]);
+            /*$result["data"] = [
+                "id"=>uniqid(),
+                "status"=>"SUBMITTED",
+                "startTime"=> (new \DateTimeImmutable())->getTimestamp(),
+                "finishTime"=>(new \DateTimeImmutable())->getTimestamp(),
+                "submitTime"=>(new \DateTimeImmutable())->getTimestamp(),
+                "duration"=>20*60,
+                "duration_formated"=> gmdate('H:i:s', 20*60),
+                "jobPercent"=>0
+            ];*/
+
             $result["status"] = true;
+
+
+            //TODO: Message broker à envoyer (submitted)
+            //TODO: Ajout de "with_encription" dans le payload du MB
+            $attributes = [
+                "content_type"=>"application/json",
+                "delivery_mode"=>2,
+                "correlation_id"=>$video->getCode()
+            ];
+            $datas["payload"] = [
+                "code" => $video->getCode(),
+                "jobRef" => $result["data"]["id"],
+                "encrypted"=> $withEncryption,
+                "originalFilename" => $video->getOriginalFilename(),
+                "fileSize" => $video->getFileSize(),
+                "createdAt" => $video->getCreatedAt()->getTimestamp(),
+                "useFor" => $video->getUseFor(),
+                "bucket" => $this->container->get("coa_videolibrary.s3_bucket"),
+                "region" => $this->container->get("coa_videolibrary.aws_region")
+            ];
+            if($withEncryption) {
+                $datas["payload"]["aes"] = [
+                    "key" => base64_encode($keyval),
+                    "iv" => base64_encode($iv)
+                ];
+            }
+            $this->bus->dispatch(new DefaulfMessage([
+                "action"=>"mc.transcoding.submitted",
+                "payload"=>$datas['payload'],
+            ]),[
+                new AmqpStamp('mc.transcoding.submitted', AMQP_NOPARAM, $attributes),
+            ]);
 
             return $result;
 

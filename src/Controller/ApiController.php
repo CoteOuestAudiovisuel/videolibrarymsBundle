@@ -104,7 +104,7 @@ class ApiController extends AbstractController
                 //$coaVideolibrary->transcode($video,$baseurl,$key_baseurl);
                 $video_ = $em->getRepository(Video::class)->find(5830);
                 $datas = $coaVideolibrary->generateVideoPayload($video_);
-                $coaVideolibrary->postBackProcess($video_, $datas);
+                //$coaVideolibrary->postBackProcess($video_, $datas);
 
                 $result["html"] = $this->renderView("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
             }

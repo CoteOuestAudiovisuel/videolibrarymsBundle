@@ -108,6 +108,29 @@ class S3Service
     }
 
     /**
+     * @param string $bucket
+     * @param string $key
+     * @param string $sourceFilePath
+     * @return array|\Aws\Result
+     *
+     * Permet d'ajoute un objet dans un bucket
+     */
+    public function putObject(string $bucket, string $key, string $sourceFilePath){
+        $result = [];
+        try {
+            $client = $this->buildClient();
+            $result = $client->putObject([
+                "Bucket"=>$bucket,
+                "Key"=>$key,
+                "SourceFile"=> $sourceFilePath,
+            ]);
+        } catch (S3Exception $e) {
+            $result["error"] = $e->getMessage();
+        }
+        return $result;
+    }
+
+    /**
      * recupere un url direct d'un element à télécharger
      * exeample: le téléchargement des fichiers mp4
      * @param string $bucket

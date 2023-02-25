@@ -11,11 +11,65 @@
         .data-item-image{
             background: url("{{ asset('bundles/coavideolibrary/images/not-available.png','coa_videolibrary_host') }}") no-repeat 0 0;
         }
+
+        .screenshot-add {
+            width: 0.1px;
+            height: 0.1px;
+            opacity: 0;
+            overflow: hidden;
+            position: absolute;
+            z-index: -1;
+        }
+
+        .screenshot-label {
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        .modal-screenshot .screenshot-zone:not(.loading) .fa-circle-notch {
+            display: none;
+        }
+
+        .modal-screenshot .screenshot-zone.loading .fa-plus {
+            display: none;
+        }
+
+        .modal-screenshot .screenshot.prototype {
+            display: none;
+        }
+
+        .modal-screenshot .screenshot:not(.prototype).loading .screenshot--overlay {
+            display: none !important;
+        }
+
+        .modal-screenshot .screenshot:not(.prototype):not(.loading) .progression {
+            display: none;
+        }
+
+        .screenshot .progression {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .screenshot .progression strong {
+            position: absolute;
+            top: 38px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            line-height: 40px;
+            font-size: 15px;
+        }
     </style>
 {% endblock %}
 
 {% block body %}
-
     <div class="main-card card mb-3" id="main-container">
 
         <div class="card-header">
@@ -250,6 +304,40 @@
     {# modal selection video #}
     {% include '@CoaVideolibrary/home/modal-video.html.twig' %}
 
+    <div class="modal fade modal-screenshot-remove" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="main-card card">
+                    <div class="card-header">
+                        <i class="header-icon lnr-question-circle icon-gradient bg-plum-plate"></i>
+                        Confirmation
+                        </span>
+                    </div>
+
+                    <div class="card-body">
+
+                        <p style="font-size: 16px">
+                            Voulez-vous vraiment supprimer cet élément ?
+                            <br> Cette action est irrevessible,et sera définitivement supprimé de votre base de donnée.
+                        </p>
+
+                    </div>
+
+                    <div class="d-block text-right card-footer">
+
+                        <button type="button" class="btn bg-plum-plate text-white yes">
+                            Oui
+                        </button>
+
+                        <button type="button" class="btn bg-plum-plate text-white no" data-dismiss="modal">
+                            Non
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="toast-container" class="toast-top-right"></div>
 {% endblock %}
 
