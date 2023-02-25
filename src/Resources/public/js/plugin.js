@@ -538,19 +538,142 @@ Aaz.VideoLibrary = (function(nsp){
         /**
          * ajouter une vignette aux screenshots
          */
-        $('body').on("click",".modal-screenshot .add",(e)=>{
+        modal_screenshot.on({//TODO: Trouver un élément parent plus proche
+            change: (ee) => {
+                let input = $('input.screenshot-add')
+                let form = input.parents('form');
 
-            e.preventDefault();
-            let input = $('<input multiple="true" type="file" accept="images/*" />');
-            input.on({
-                change:(ee)=>{
-                    let files = ee.target.files;
-                    //this.sourceAvailable(files);
-                }
-            });
-            input.trigger("click");
+                form.submit();
+
+            }
+        }, 'input.screenshot-add');
+
+        modal_screenshot.on({
+            submit: e => {
+                e.preventDefault();
+                let scZone = $(e.currentTarget).parents(".screenshot-zone");
+                let video_code = modal_screenshot.attr("data-id");
+
+                const formData = new FormData(e.currentTarget);
+
+                let thumbnail_item = $('.modal-screenshot .screenshot.prototype').clone();
+                $('.modal-screenshot .row.screenshots').find('.screenshot').last().after(thumbnail_item);
+                thumbnail_item.removeClass('prototype');
+                thumbnail_item.addClass('loading');
+
+                let progressBar = thumbnail_item.find('.progression .screenshot-circle-progression');
+                progressBar.circleProgress({
+                    value: 0,
+                    size: 50,
+                    fill: {
+                        color: "#3f6ad8"
+                    }
+                }).on('circle-animation-progress', function(event, progress) {
+                    $(this).find('strong').html(Math.round(100 * progress) + '<i>%</i>');
+                })
+
+                $.ajax({
+                    url: `upload-screenshots/${video_code}`,
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    xhr: function() {
+                        const xhr = new window.XMLHttpRequest();// TODO: Trouver une alternative jQuery
+                        xhr.upload.addEventListener('progress', function(event) {
+                            if (event.lengthComputable) {
+                                const percent = (event.loaded / event.total) * 100;
+                                progressBar .circleProgress('value', (percent / 100));
+                            }
+                        });
+                        return xhr;
+                    },
+                    success: function(data) {
+                        if(data.status === "successful") {
+                            thumbnail_item.attr("data-key", data.key);
+                            thumbnail_item.find('img').attr("src", data.screenshot);
+                        } else {
+                            let body = $('body');
+                            for(let i = 0; i < data.errors.length; i ++) {
+                                toastSce.insert("error","Erreur",data.errors[i]);
+                            }
+                            thumbnail_item.remove();
+
+                        }
+                        scZone.removeClass('loading');
+                        thumbnail_item.removeClass('loading');
+                        $('.progress').remove()
+                    },
+                    error: function(e, jqxhr, settings) {
+                        let body = $('body');
+                        let data = e.responseJSON;
+                        let errors = data.errors;
+
+                        for(let i = 0; i < errors.length; i ++) {
+                            toastSce.insert("error","Erreur", errors[i]);
+                        }
+
+                        scZone.removeClass('loading');
+                        thumbnail_item.remove();
+                    }
+                });
+
+            }
+        }, 'form.screenshot-form')
+
+        /**
+         * Pour supprimer une vignette
+         */
+        let modal_screenshot_remove = $('.modal.modal-screenshot-remove');
+
+        modal_screenshot.on({
+            click: e => {
+                e.preventDefault();
+
+                let code = modal_screenshot.attr('data-id');
+                let key = $(e.currentTarget).parents('.screenshot').attr('data-key');
+
+                modal_screenshot_remove.modal('show');
+                modal_screenshot_remove.attr("data-id", code);
+                modal_screenshot_remove.attr("data-key", key);
+
+            }
+        }, '.btn-delete-screenshot');
+
+        let btn_remove_screenshot = modal_screenshot_remove.find(".card-footer button.yes");
+
+        btn_remove_screenshot.on({
+            click: e => {
+                e.preventDefault();
+                let code = modal_screenshot_remove.attr("data-id");
+                let key = modal_screenshot_remove.attr("data-key");
+
+                $.ajax({
+                    url: `delete-screenshot/${code}`,
+                    method: 'POST',
+                    data: {code, key},
+                    success: (data) => {
+                        if(data.status === "successful") {
+                            let item = $('div.screenshot[data-key="'+ key +'"]');
+                            item.remove();
+                        } else {
+                            for(let i = 0; i < data.errors.length; i ++) {
+                                toastSce.insert("error","Erreur",data.errors[i]);
+                            }
+                        }
+                    },
+                    error: (e) => {
+                        let data = e.responseJSON;
+                        for(let i = 0; i < data.errors.length; i ++) {
+                            toastSce.insert("error","Erreur",data.errors[i]);
+                        }
+                    },
+                    complete: e => {
+                        modal_screenshot_remove.modal("hide")
+                    }
+                })
+            }
         });
-
 
         /**
          * clique pour lancer un upload

@@ -2,8 +2,10 @@
 
 namespace Coa\VideolibraryBundle\Controller;
 
+use Coa\MessengerBundle\Messenger\Message\DefaulfMessage;
 use Coa\VideolibraryBundle\Entity\Video;
 use Coa\VideolibraryBundle\Extensions\Twig\AwsS3Url;
+use Coa\VideolibraryBundle\Form\ScreenshotType;
 use Coa\VideolibraryBundle\Service\CoaVideolibraryService;
 use Coa\VideolibraryBundle\Service\MediaConvertService;
 use Coa\VideolibraryBundle\Service\S3Service;
@@ -13,9 +15,14 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Asset\Packages;
 use Symfony\Component\HttpFoundation\AcceptHeader;
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpStamp;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Constraints\Image;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use function Doctrine\ORM\QueryBuilder;
 
@@ -28,6 +35,16 @@ use function Doctrine\ORM\QueryBuilder;
  */
 class VideolibraryController extends AbstractController
 {
+    private MessageBusInterface $bus;
+    private EntityManagerInterface $manager;
+    private S3Service $s3Service;
+
+    public function __construct(MessageBusInterface $bus, EntityManagerInterface $manager, S3Service $s3Service)
+    {
+        $this->bus = $bus;
+        $this->manager = $manager;
+        $this->s3Service = $s3Service;
+    }
 
     private function getVideo(string $code){
         $entity_class = $this->getParameter("coa_videolibrary.video_entity");
@@ -125,6 +142,19 @@ class VideolibraryController extends AbstractController
             case "COMPLETE":
                 $r = $s3Service->deleteObject($bucket,$prefix);
                 $result["payload"] = $r;
+                $attributes = [
+                    "content_type"=>"application/json",
+                    "delivery_mode"=>2,
+                    "correlation_id"=>uniqid(),
+                ];
+                $this->bus->dispatch(new DefaulfMessage([
+                    "action"=>"mc.video.remove",
+                    "payload"=>[
+                        "code"=>$video->getCode(),
+                    ],
+                ]),[
+                    new AmqpStamp('mc.video.remove', AMQP_NOPARAM, $attributes),
+                ]);
                 break;
 
             // annulation de la tache de transcodage dans mediaconvert
@@ -167,6 +197,20 @@ class VideolibraryController extends AbstractController
             // on annule une tâche, quand celle-ci a l'un status suivant
             if(in_array($job["data"]["status"],["SUBMITTED","PROGRESSING","pending"])){
                 $r = $mediaConvert->cancelJob($video->getJobRef());
+                $attributes = [
+                    "content_type"=>"application/json",
+                    "delivery_mode"=>2,
+                    "correlation_id"=>uniqid(),
+                ];
+                $this->bus->dispatch(new DefaulfMessage([
+                    "action"=>"mc.transcoding.canceled",
+                    "payload"=>[
+                        "code"=>$video->getCode(),
+                        "jobRef"=>$video->getJobRef(),
+                    ],
+                ]),[
+                    new AmqpStamp('mc.transcoding.canceled', AMQP_NOPARAM, $attributes),
+                ]);
             }
         }
         return $this->json($result);
@@ -179,7 +223,11 @@ class VideolibraryController extends AbstractController
     public function getScreenshot(Request $request, string $code): Response
     {
         $video = $this->getVideo($code);
-        $response = $this->render("@CoaVideolibrary/home/screenshot-item-render.html.twig", ["video"=>$video]);
+
+        $form = $this->createForm(ScreenshotType::class);
+        $form->handleRequest($request);
+
+        $response = $this->render("@CoaVideolibrary/home/screenshot-item-render.html.twig", ["video"=>$video, "form" => $form->createView()]);
         $response->headers->set("Cache-Control","public, max-age=3600");
         return  $response;
     }
@@ -224,6 +272,23 @@ class VideolibraryController extends AbstractController
         $em->flush();
         $result["status"] = true;
         $result["message"] = "Durée modifiée avec succès";
+
+
+        $attributes = [
+            "content_type"=>"application/json",
+            "delivery_mode"=>2,
+            "correlation_id"=>uniqid(),
+        ];
+        $this->bus->dispatch(new DefaulfMessage([
+            "action"=>"mc.video.duration",
+            "payload"=>[
+                "code"=>$video->getCode(),
+                "duration"=>$seconds,
+            ],
+        ]),[
+            new AmqpStamp('mc.video.duration', AMQP_NOPARAM, $attributes),
+        ]);
+
         return  $this->json($result);
     }
 
@@ -245,38 +310,165 @@ class VideolibraryController extends AbstractController
             $result["status"] = true;
             $result["url"] = $awsS3Url->urlBasename($key,$video);
         }
+
+        $attributes = [
+            "content_type"=>"application/json",
+            "delivery_mode"=>2,
+            "correlation_id"=>uniqid(),
+        ];
+        $this->bus->dispatch(new DefaulfMessage([
+            "action"=>"mc.video.poster",
+            "payload"=>[
+                "code"=>$video->getCode(),
+                "poster"=>$key
+            ],
+        ]),[
+            new AmqpStamp('mc.video.poster', AMQP_NOPARAM, $attributes),
+        ]);
+
         return  $this->json($result);
+    }
+
+    /**
+     * Ajout de screenshot
+     * @Route("/upload-screenshots/{code}", name="upload_screenshots")
+     * @param Request $request
+     * @return Response
+     */
+    public function uploadScreenshots(string $code, Request $request, AwsS3Url $awsS3Url): Response
+    {
+        $errors = [];
+        $form = $this->createForm(ScreenshotType::class);
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()) {
+            $img = $form->get('imgs')->getData();
+            $sourceFilePath = $img->getRealPath();
+
+            $video = $this->getVideo($code);
+
+            if(!$video) {
+                return $this->json([
+                    'status' => 'failed',
+                    'errors' => [
+                        0 => "Vidéo non trouvée"
+                    ]
+                ], 400);
+            }
+
+            $screenshots = $video->getScreenshots();
+            $nb_screenshots = count($screenshots);
+            $filenumber = str_pad($nb_screenshots, 7, "0", STR_PAD_LEFT);
+            $filename = sprintf("%s/manifest_720p.%s.jpg", $code, $filenumber);
+
+            $screenshots[] =  $filename;
+            $video->setScreenshots($screenshots);
+
+            $this->manager->persist($video);
+            $this->manager->flush();
+
+
+            $this->s3Service->putObject($video->getBucket(), $filename, $sourceFilePath);
+
+            $screenshot = $awsS3Url->urlBasename($filename, $video);
+
+            //Dispatch
+            $attributes = [
+                "content_type"=>"application/json",
+                "delivery_mode"=>2,
+                "correlation_id"=>uniqid(),
+            ];
+            $this->bus->dispatch(new DefaulfMessage([
+                "action"=>"mc.thumbnail.add",
+                "payload"=>[
+                    "code" => $code,
+                    "key" => $filename
+                ],
+            ]),[
+                new AmqpStamp('mc.thumbnail.add', AMQP_NOPARAM, $attributes),
+            ]);
+
+            return $this->json([
+                'status' => 'successful',
+                'screenshot' => $screenshot,
+                'key' => $filename
+            ]);
+        }
+
+        $form_errors = $form->getErrors(true);
+        if ($form_errors->count() > 0) {
+            $nb_errors = $form_errors->count();
+            for($i=0; $i<$nb_errors; $i++) {
+               $errors[] = $form_errors->offsetGet($i)->getMessage();
+            }
+        }
+
+        return $this->json([
+            'status' => 'failed',
+            'errors' => $errors
+        ], 400);
+
+    }
+
+    /**
+     * Suppression de screenshot
+     * @Route("/delete-screenshot/{code}", name="delete_screenshot")
+     * @param string $code
+     * @param Request $request
+     * @return Response
+     */
+    public function deleteScreenshot(string $code, Request $request): Response
+    {
+        $video = $this->getVideo($code);
+        $key = $request->request->get("key");
+
+        if(!$video) {
+            return $this->json([
+                'status' => 'failed',
+                'errors' => [
+                    0 => "Vidéo non trouvée"
+                ]
+            ], 400);
+        }
+
+        $screenshots = $video->getScreenshots();
+        $screenshot_index = array_search($key, $screenshots);
+        unset($screenshots[$screenshot_index]);
+
+        $video->setScreenshots($screenshots);
+
+        $this->manager->persist($video);
+        $this->manager->flush();
+
+        $this->s3Service->deleteObject($video->getBucket(), $key);
+
+        //Dispatch
+        $attributes = [
+            "content_type"=>"application/json",
+            "delivery_mode"=>2,
+            "correlation_id"=>uniqid(),
+        ];
+        $this->bus->dispatch(new DefaulfMessage([
+            "action"=>"mc.thumbnail.remove",
+            "payload"=>[
+                "code" => $code,
+                "key" => $key
+            ],
+        ]),[
+            new AmqpStamp('mc.thumbnail.remove', AMQP_NOPARAM, $attributes),
+        ]);
+
+        return $this->json([
+            'status' => 'successful'
+        ]);
     }
 
     /**
      * @Route("/getStatus", name="getstatus")
      */
-    public function getStatus(Request $request, MediaConvertService $mediaConvert, CoaVideolibraryService $coaVideolibrary): Response
+    public function getStatus(CoaVideolibraryService $coaVideolibrary): Response
     {
-        $em = $this->getDoctrine()->getManager();
-        $rep = $em->getRepository($this->getParameter("coa_videolibrary.video_entity"));
-        $maxResults = $request->query->get("maxResults",20);
-        $result = [];
-
-        if($_ENV["APP_ENV"] == "dev"){
-            $result = $coaVideolibrary->getStatus($maxResults);
-        }
-        else{
-            $videos = $rep->findBy([],["id"=>"DESC"],$maxResults);
-            $result["payload"] = array_map(function ($el){
-                return [
-                    "id"=>$el->getJobRef(),
-                    "status"=>$el->getState(),
-                    "startTime"=>$el->getjobStartTime(),
-                    "finishTime"=>$el->getjobFinishTime(),
-                    "submitTime"=>$el->getjobSubmitTime(),
-                    "duration"=>$el->getDuration(),
-                    "duration_formated"=> gmdate('H:i:s', $el->getDuration()),
-                    "jobPercent"=>$el->getJobPercent(),
-                    "html"=>$this->renderView("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$el]])
-                ];
-            },$videos);
-        }
+        $result = $coaVideolibrary->getStatus(20);
         return  $this->json($result);
     }
 
@@ -284,121 +476,9 @@ class VideolibraryController extends AbstractController
      * @Route("/upload", name="upload")
      * @IsGranted("ROLE_VIDEOLIBRARY_UPLOAD")
      */
-    public function upload(Request $request, MediaConvertService $mediaConvert,
-                           Packages $packages, CoaVideolibraryService $coaVideolibrary): Response
+    public function upload(CoaVideolibraryService $coaVideolibrary): Response
     {
-        $em = $this->getDoctrine()->getManager();
-        $video_entity = $this->getParameter("coa_videolibrary.video_entity");
-        $rep = $em->getRepository($video_entity);
-        $encrypted = filter_var($request->request->get('encryption',true),FILTER_VALIDATE_BOOLEAN);
-        $usefor = strtolower($request->request->get('usefor',''));
-        $usefor = in_array($usefor,["film","episode","clip"]) ? $usefor : "episode";
-
-        $targetDirectory = $this->getTargetDirectory();
-
-        $result = [
-            "status" => "fails",
-        ];
-        $file = $request->files->get("file");
-        $video_id = $request->request->get("video_id");
-
-        $content_range = $request->headers->get("content-range");
-        list($chunk_range, $total_size) = explode("/", substr($content_range, 5));
-        list($chunk_range_start, $chunk_range_end) = explode("-", $chunk_range);
-        $total_size = intval($total_size);
-        $chunk_range_start = intval($chunk_range_start);
-        $chunk_range_end = intval($chunk_range_end);
-        $is_end = ($chunk_range_end + 1 == $total_size);
-
-        $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $file_length = $file->getSize();
-
-        if ($video_id) {
-
-            if (!($video = $rep->findOneBy(["code"=>$video_id]))) {
-                $result['logs'] = "impossible de traiter cette requete";
-                $result['code'] = 404;
-                return $this->json($result,404);
-            }
-
-            $code = $video->getCode();
-            $chunk = $file->getContent();
-            $filepath = sprintf($targetDirectory . "/%s.mp4", $code);
-            file_put_contents($filepath, $chunk, FILE_APPEND);
-            $video->setFileSize($video->getFileSize() + $file_length);
-            $video->setEncrypted($encrypted);
-            $video->setUseFor($usefor);
-
-
-            if($is_end) {
-                $video->setState("pending");
-            }
-
-            $result["video_id"] = $video->getCode();
-            $result["status"] = "downloading";
-
-            if ($is_end) {
-                $result['status'] = "success";
-                $key_baseurl = $this->getParameter("coa_videolibrary.hls_key_baseurl");
-                $baseurl = $request->getSchemeAndHttpHost();
-
-                if(!$key_baseurl){
-                    $key_baseurl = $baseurl;
-                }
-                else{
-                    $baseurl = $key_baseurl;
-                }
-
-                if($_ENV["APP_ENV"] == "prod"){
-                    $baseurl = $request->getSchemeAndHttpHost();
-                }
-
-                $coaVideolibrary->transcode($video,$baseurl,$key_baseurl);
-                $result["html"] = $this->renderView("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
-            }
-
-            $em->persist($video);
-            $em->flush();
-        }
-        else{
-
-            if ($file->getMimeType() !== "video/mp4") {
-                $result['log'] = sprintf("Veuillez utiliser un fichier mp4, %s n'est pas un fichier valide", $originalFilename);
-                return $this->json($result,400);
-            }
-
-            $code = substr(trim(base64_encode(bin2hex(openssl_random_pseudo_bytes(32,$ok))),"="),0,32);
-            if(($code_prefix = $this->getParameter("coa_videolibrary.prefix"))){
-                $code = sprintf("%s_%s",$code_prefix,$code);
-            }
-
-            $chunk = $file->getContent();
-            $filepath = sprintf($targetDirectory . "/%s.mp4", $code);
-            file_put_contents($filepath, $chunk, FILE_APPEND);
-
-
-
-            $video = new $video_entity();
-            $video->setCode($code);
-            $video->setOriginalFilename($originalFilename);
-            $video->setFileSize($file_length);
-            $video->setState("downloading");
-            $video->setIsTranscoded(false);
-            $video->setPoster(null);
-            $video->setScreenshots(null);
-            $video->setWebvtt(null);
-            $video->setManifest(null);
-            $video->setDuration(null);
-            $video->setCreatedAt(new \DateTimeImmutable());
-            $video->setAuthor($this->getUser());
-            $video->setEncrypted($encrypted);
-            $video->setUseFor($usefor);
-
-            $em->persist($video);
-            $em->flush();
-            $result["video_id"] = $video->getCode();
-            $result['status'] = "start";
-        }
+        $result = $coaVideolibrary->upload();
         return $this->json($result);
     }
 

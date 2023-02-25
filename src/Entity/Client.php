@@ -66,12 +66,17 @@ class Client implements UserInterface
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $websiteUrl;
+    private $domain;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $postbackUrl;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $hlsKeyBaseurl;
 
     /**
      * @ORM\ManyToMany(targetEntity="Scope", inversedBy="clients")
@@ -191,10 +196,13 @@ class Client implements UserInterface
      */
     public function getGrantTypes(): ?Collection
     {
-        $criteria = Criteria::create()
-            ->andWhere(Criteria::expr()->eq('isEnabled', true));
+        if($this->grantTypes) {
+            $criteria = Criteria::create()
+                ->andWhere(Criteria::expr()->eq('isEnabled', true));
 
-        return $this->grantTypes->matching($criteria);
+            return $this->grantTypes->matching($criteria);
+        }
+        return null;
     }
 
     public function addGrantType(GrantType $grantType): self
@@ -343,19 +351,36 @@ class Client implements UserInterface
     }
 
     /**
-     * @param mixed $websiteUrl
+     * @param mixed $domain
      */
-    public function setWebsiteUrl($websiteUrl): self
+    public function setDomain($domain): self
     {
-        $this->websiteUrl = $websiteUrl;
+        $this->domain = $domain;
         return $this;
     }
 
     /**
      * @return string
      */
-    public function getWebsiteUrl(): ?string
+    public function getDomain(): ?string
     {
-        return $this->websiteUrl;
+        return $this->domain;
+    }
+
+    /**
+     * @param mixed $hlsKeyBaseurl
+     */
+    public function setHlsKeyBaseurl($hlsKeyBaseurl): self
+    {
+        $this->hlsKeyBaseurl = $hlsKeyBaseurl;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getHlsKeyBaseurl(): ?string
+    {
+        return $this->hlsKeyBaseurl;
     }
 }

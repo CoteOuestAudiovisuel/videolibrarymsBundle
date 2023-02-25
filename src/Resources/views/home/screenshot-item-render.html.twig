@@ -1,9 +1,30 @@
 <div class="row screenshots">
+    <div data-key="" class="col-3 p-1 screenshot prototype">
+        <div class="position-relative">
+            <img class="img-fluid" src="" onerror="this.onerror=null; this.src='{{ asset('bundles/coavideolibrary/images/not-available.png','coa_videolibrary_host') }}'" alt="">
+            <div class="progression">
+                <div class="screenshot-circle-progression" style="width: 50px;height: 50px" data-size="60">
+                    <strong></strong>
+                </div>
+            </div>
+            <div class="screenshot--overlay">
+                <button type="button" class="text-danger btn btn-delete-screenshot" style="position: absolute;top: 0;right: 0;">
+                    <i class="fa fa-trash"></i>
+                </button>
+                <button class="btn btn-dark btn-select-thumbnail">
+                    Définir comme vignette
+                </button>
+            </div>
+        </div>
+    </div>
     {% for key in video.screenshots %}
         <div data-key="{{ key }}" class="col-3 p-1 screenshot">
             <div class="position-relative">
-                <img class="img-fluid" src="https://{{ video.bucket }}.s3.{{ video.region }}.amazonaws.com/{{ key }}" alt="">
+                <img class="img-fluid" src="https://{{ video.bucket }}.s3.{{ video.region }}.amazonaws.com/{{ key }}" onerror="this.onerror=null; this.src='{{ asset('bundles/coavideolibrary/images/not-available.png','coa_videolibrary_host') }}'" alt="">
                 <div class="screenshot--overlay">
+                    <button type="button" class="text-danger btn btn-delete-screenshot" style="position: absolute;top: 0;right: 0;">
+                        <i class="fa fa-trash"></i>
+                    </button>
                     <button class="btn btn-dark btn-select-thumbnail">
                         Définir comme vignette
                     </button>
@@ -13,13 +34,16 @@
     {% endfor %}
 
 
-
-    <a href="" class="col-3 p-1 add" >
-        <div class="bg-light text-decoration-none position-relative d-inline-block mx-0 px-0 align-middle w-100" style="height: 120px;vertical-align: middle">
-            <div style="height: 100%; text-shadow: 1px 1px #000" class="text-white d-flex flex-column justify-content-center align-items-center">
-                <i class="fa fa-plus fa-2x"></i>
-            </div>
+    {% if _only_item is not defined %}
+{#    <a href="" class="col-3 p-1 add" >#}
+    <div class="col-3 p-1 screenshot-zone bg-light text-decoration-none position-relative d-inline-block mx-0 px-0 align-middle w-100" style="height: 106px;vertical-align: middle;margin-top: 4px;">
+        <div style="height: 100%; text-shadow: 1px 1px #000" class="text-white d-flex flex-column justify-content-center align-items-center">
+            {{ form_start(form, {attr: {class: "screenshot-form"}}) }}
+                {{ form_row(form.imgs) }}
+            {{ form_end(form) }}
         </div>
+    </div>
 
-    </a>
+{#    </a>#}
+    {% endif %}
 </div>

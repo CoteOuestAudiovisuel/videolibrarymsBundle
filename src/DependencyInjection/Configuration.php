@@ -55,6 +55,11 @@ class Configuration implements ConfigurationInterface
                     ->defaultNull()
                 ->end()
 
+                ->scalarNode('inputfile_baseurl')
+                    ->info("la base url pour l'access aux fichiers mp4")
+                    ->defaultNull()
+                ->end()
+
                 ->scalarNode('video_entity')
                     ->info("l'entité Video à utiliser pour les opération de CRUD")
                     ->defaultNull()

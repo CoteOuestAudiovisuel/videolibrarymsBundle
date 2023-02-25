@@ -29,5 +29,11 @@ class GlobalRequestListener
             $package = new UrlPackage($base_url_cdn, $versionStrategy);
             $this->packages->addPackage("coa_videolibrary_host", $package);
         }
+
+        /*$headers = [
+            "Access-Control-Allow-Origin" => "*"
+        ];
+        $event->getRequest()->headers->add($headers);
+        $event->stopPropagation();*/
     }
 }
