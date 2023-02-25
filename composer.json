@@ -1,5 +1,5 @@
 {
-    "name": "coa/videolibrary-bundle",
+    "name": "coa/videolibraryms-bundle",
     "description": "gestion des videos aws, upload, mediaconvert, s3",
     "type": "symfony-bundle",
     "version": "v2.0.6",
