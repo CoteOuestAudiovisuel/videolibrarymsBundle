@@ -446,7 +446,7 @@ class CoaVideolibraryService
      * @throws \Twig\Error\RuntimeError
      * @throws \Twig\Error\SyntaxError
      */
-    public function upload(){
+    public function upload(Client $client){
         $request = $this->requestStack->getMainRequest();
         $em = $this->em;
         $video_entity = $this->container->get("coa_videolibrary.video_entity");
@@ -545,7 +545,7 @@ class CoaVideolibraryService
             $video->setAuthor(null);
             $video->setEncrypted($encrypted);
             $video->setUseFor($usefor);
-            $video->setClient($this->security->getUser());
+            $video->setClient($client);
 
             $em->persist($video);
             $em->flush();

@@ -3,6 +3,7 @@
 namespace Coa\VideolibraryBundle\Controller;
 
 use Coa\MessengerBundle\Messenger\Message\DefaulfMessage;
+use Coa\VideolibraryBundle\Entity\Client;
 use Coa\VideolibraryBundle\Entity\Video;
 use Coa\VideolibraryBundle\Extensions\Twig\AwsS3Url;
 use Coa\VideolibraryBundle\Form\ScreenshotType;
@@ -63,6 +64,15 @@ class VideolibraryController extends AbstractController
         return $basedir;
     }
 
+    /**
+     * @Route("/upload/{clientId}", name="upload")
+     * @IsGranted("ROLE_VIDEOLIBRARY_UPLOAD")
+     */
+    public function upload(CoaVideolibraryService $coaVideolibrary, Client $client): Response{
+        $result = $coaVideolibrary->upload($client);
+        return $this->json($result);
+    }
+
 
     /**
      * @Route("/", name="index")
@@ -91,7 +101,8 @@ class VideolibraryController extends AbstractController
 
         return $this->render($view, [
             'videos' => $data,
-            "service" => $service
+            "service" => $service,
+            "apiClients" => $this->em->getRepository(Client::class)->findAll()
         ]);
     }
 
