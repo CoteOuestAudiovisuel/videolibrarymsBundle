@@ -44,7 +44,7 @@ class ClientController extends AbstractController
      */
     public function add(Request $request): Response
     {
-        $ftpPath = $this->container->get('kernel.project_dir') . "/coa_videolibrary_ftp";
+        $ftpPath = $this->getParameter('kernel.project_dir') . "/coa_videolibrary_ftp";
         $client = new Client();
         $form = $this->createForm(ClientType::class, $client);
         $form->handleRequest($request);
