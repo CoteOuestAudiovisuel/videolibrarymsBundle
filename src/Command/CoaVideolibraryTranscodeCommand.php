@@ -32,8 +32,6 @@ class CoaVideolibraryTranscodeCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addOption('hls-key-baseurl', 'k', InputOption::VALUE_REQUIRED, "base url pour les clés DRM")
-            ->addOption('video-baseurl', 'b', InputOption::VALUE_REQUIRED, "base url d'acces aux fichiers mp4 en HTTP")
             ->addOption('limit', 'l', InputOption::VALUE_OPTIONAL, "nombre de fichier a transcode en une seul fois",20)
         ;
     }
@@ -45,8 +43,7 @@ class CoaVideolibraryTranscodeCommand extends Command
         $video_entity = $this->container->get('coa_videolibrary.video_entity');
         $rep = $this->em->getRepository($video_entity);
         $limit = $input->getOption("limit");
-        $video_baseurl = $input->getOption("video-baseurl");
-        $hls_key_baseurl = $input->getOption("hls-key-baseurl");
+        $video_baseurl = $this->container->get('coa_videolibrary.inputfile_baseurl');
 
         if(null == $video_baseurl){
             do{
@@ -54,15 +51,12 @@ class CoaVideolibraryTranscodeCommand extends Command
             }while(strlen($video_baseurl) == 0);
         }
 
-        if(null == $hls_key_baseurl){
-            do{
-                $hls_key_baseurl = trim($io->ask("hls_key_baseurl", "https://kiwi.ci"));
-            }while(strlen($hls_key_baseurl) ==0);
-        }
-
         if(($data = $rep->findBy(["state"=>"pending"],["id"=>"ASC"],$limit))){
             foreach ($data as $i=>$video){
+                if(!$video->getClient()) continue;
+
                 $io->info(sprintf("fichier %s, code: %s, envoyé en transcodage",$video->getOriginalFilename(), $video->getCode()));
+                $hls_key_baseurl = $video->getClient()->getHlsKeyBaseurl();
                 $this->coaVideolibrary->transcode($video,$video_baseurl,$hls_key_baseurl);
             }
         }

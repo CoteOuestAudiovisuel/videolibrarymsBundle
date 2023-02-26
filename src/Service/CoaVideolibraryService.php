@@ -64,8 +64,7 @@ class CoaVideolibraryService
         $keyfilename = $code;
         $bucket = $this->container->get("coa_videolibrary.s3_bucket");
         $region = $this->container->get("coa_videolibrary.aws_region");
-        $keys_route = $this->container->get("coa_videolibrary.keys_route");
-        $keyurl = $hls_key_baseurl . $keys_route . "/" . $keyfilename;
+        $keyurl = $hls_key_baseurl . "/" . $keyfilename;
 
         try {
             $job = $this->mediaConvert->createJob($inputfile,$keyfilename,$keyurl,$bucket,$withEncryption, $video);
@@ -91,6 +90,7 @@ class CoaVideolibraryService
         $rep = $this->em->getRepository($video_entity);
         $ftpPath = $this->container->get('kernel.project_dir') . "/coa_videolibrary_ftp";
         $destPath = $this->container->get('kernel.project_dir') . "/public/coa_videolibrary_upload";
+        $cRep = $this->em->getRepository(Client::class);
 
         if(!file_exists($ftpPath)){
             mkdir($ftpPath);
@@ -100,8 +100,17 @@ class CoaVideolibraryService
             mkdir($destPath);
         }
 
-        foreach (glob(sprintf("%s/*.mp4",$ftpPath)) as $filename) {
+        foreach (glob(sprintf("%s/**/*.mp4",$ftpPath)) as $filename) {
             $basename =  basename($filename);
+            $client_name = explode("/",$filename);
+            $fname = array_pop($client_name);
+            $cname = array_pop($client_name);
+
+            if(!($client = $cRep->findOneBy(["name"=>$cname]))){
+                // tout ce qui ne correspond pas a un client est supprimé
+                unlink($filename);
+                continue;
+            }
 
             $code = substr(trim(base64_encode(bin2hex(openssl_random_pseudo_bytes(32,$ok))),"="),0,32);
             $file_length = filesize($filename);
@@ -126,10 +135,10 @@ class CoaVideolibraryService
             $video->setEncrypted($encrypted);
             $video->setUseFor($usefor);
             $video->setCreatedAt(new \DateTimeImmutable());
+            $video->setClient($client);
             $this->em->persist($video);
             $this->em->flush();
             rename($filename, $newFilename);
-            //TODO: Messafe à envoyer sur le broker
         }
     }
 
@@ -150,190 +159,116 @@ class CoaVideolibraryService
         $clients = $this->em->getRepository(Client::class)->findBy(['isEnabled' => true]);
 
         foreach ($clients as $client) {
-            if(($videos = $rep->findBy(["state"=>["PROGRESSING","SUBMITTED"], "client" => $client],["id"=>"ASC"],$maxResults))) {
 
-                foreach ($videos as $video){
-                    if(!$video->getJobRef()) continue;
-                    $r = $this->mediaConvert->getJob($video->getJobRef());
-                    if(!$r["status"]) continue;
+            if(!($videos = $rep->findBy(["state"=>["PROGRESSING","SUBMITTED"], "client" => $client],["id"=>"ASC"],$maxResults))) {
+                continue;
+            }
 
-                    $job = @$r["data"];
-                    if(isset($job["status"]) && $job["status"] != $video->getState()){
-                        $video->setState($job["status"]);
-                    }
+            foreach ($videos as $video){
+                if(!$video->getJobRef()) continue;
+                $r = $this->mediaConvert->getJob($video->getJobRef());
+                if(!$r["status"]) continue;
 
-                    if(isset($job["duration"]) && $job["duration"] != $video->getDuration()){
-                        $video->setDuration($job["duration"]);
-                    }
-
-                    if($job["status"] == "COMPLETE") {
-                        $video->setJobPercent(100);
-                    }
-                    else{
-                        $video->setJobPercent($job["jobPercent"]);
-                    }
-
-                    if (isset($job["startTime"]) && $job["startTime"]) {
-                        $video->setjobStartTime(new \DateTimeImmutable($job["startTime"]));
-                    }
-
-                    if (isset($job["submitTime"]) && $job["submitTime"]) {
-                        $video->setjobSubmitTime(new \DateTimeImmutable($job["submitTime"]));
-                    }
-
-                    if (isset($job["finishTime"]) && $job["finishTime"]) {
-                        $video->setjobFinishTime(new \DateTimeImmutable($job["finishTime"]));
-                    }
-
-                    if($job["status"] == "COMPLETE"){
-                        $bucket = $video->getBucket(); //@$job["bucket"];
-                        $prefix = $video->getCode()."/"; //@$job["prefix"];
-                        $job["resources"] = $this->mediaConvert->getResources($bucket,$prefix);
-                    }
-
-                    if (isset($job["resources"]) && count($job["resources"])) {
-                        #fix bug #045 not enough images on getstatus
-                        $video->setDownload(@$job["resources"]["download"][0]);
-                        $video->setPoster($job["resources"]["thumnails"][0]);
-                        $video->setScreenshots($job["resources"]["thumnails"]);
-                        # add random poster selecttion
-                        if(count(@$job["resources"]["thumnails"]) > 1){
-                            $index = random_int(1,count($job["resources"]["thumnails"])-1);
-                            $video->setPoster($job["resources"]["thumnails"][$index]);
-                        }
-
-                        $video->setWebvtt($job["resources"]["webvtt"]);
-                        $video->setManifest($job["resources"]["manifests"][0]);
-                        $video->setVariants(array_slice($job["resources"]["manifests"], 1));
-                    }
-
-                    $this->em->persist($video);
-                    $this->em->flush();
-                    $result["payload"][] = $job;
-
-                    if(in_array($job["status"],["COMPLETE","ERROR","CANCELED"])){
-                        // supprimer les fichiers source mp4
-                        $filename = $basedir . "/" .$video->getCode().".mp4";
-                        // fichier video a supprimer
-                        if(file_exists($filename)){
-                            @unlink($filename);
-                        }
-                    }
-
-                    //Traitement pour notifier au client le resultat
-                    $datas = [];
-                    $datas['payload'] = [
-                        "code" => $video->getCode(),
-                        "jobRef" => $video->getJobRef(),
-                        "jobPercent" => $video->getJobPercent(),
-                        "state" => $video->getState(),
-                        "duration" => $video->getDuration(),
-                        "startTime" => $video->getJobStartTime() ? $video->getJobStartTime()->getTimestamp() : null,
-                        "submitTime" => $video->getJobSubmitTime() ? $video->getJobSubmitTime()->getTimestamp() : null,
-                        "finishTime" => $video->getJobFinishTime() ?  $video->getJobFinishTime()->getTimestamp() : null,
-                        "download" => $video->getDownload(),
-                        "poster" => $video->getPoster(),
-                        "screenshots" => $video->getScreenshots(),
-                        "webvtt" => $video->getWebvtt(),
-                        "manifest" => $video->getManifest(),
-                        "variants" => $video->getVariants(),
-                        "bucket" => $video->getBucket(),
-                        "region" => $video->getRegion()
-                    ];
-
-                    $attributes = [
-                        "content_type"=>"application/json",
-                        "delivery_mode"=>2,
-                        "correlation_id"=>uniqid(),
-                    ];
-                    $this->bus->dispatch(new DefaulfMessage([
-                        "action"=>"mc.transcoding.status",
-                        "payload"=>$datas['payload'],
-                    ]),[
-                        new AmqpStamp('mc.transcoding.status', AMQP_NOPARAM, $attributes),
-                    ]);
-
-                    $job["html"] = $this->twig->render("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
+                $job = @$r["data"];
+                if(isset($job["status"]) && $job["status"] != $video->getState()){
+                    $video->setState($job["status"]);
                 }
+
+                if(isset($job["duration"]) && $job["duration"] != $video->getDuration()){
+                    $video->setDuration($job["duration"]);
+                }
+
+                if($job["status"] == "COMPLETE") {
+                    $video->setJobPercent(100);
+                }
+                else{
+                    $video->setJobPercent($job["jobPercent"]);
+                }
+
+                if (isset($job["startTime"]) && $job["startTime"]) {
+                    $video->setjobStartTime(new \DateTimeImmutable($job["startTime"]));
+                }
+
+                if (isset($job["submitTime"]) && $job["submitTime"]) {
+                    $video->setjobSubmitTime(new \DateTimeImmutable($job["submitTime"]));
+                }
+
+                if (isset($job["finishTime"]) && $job["finishTime"]) {
+                    $video->setjobFinishTime(new \DateTimeImmutable($job["finishTime"]));
+                }
+
+                if($job["status"] == "COMPLETE"){
+                    $bucket = $video->getBucket(); //@$job["bucket"];
+                    $prefix = $video->getCode()."/"; //@$job["prefix"];
+                    $job["resources"] = $this->mediaConvert->getResources($bucket,$prefix);
+                }
+
+                if (isset($job["resources"]) && count($job["resources"])) {
+                    #fix bug #045 not enough images on getstatus
+                    $video->setDownload(@$job["resources"]["download"][0]);
+                    $video->setPoster($job["resources"]["thumnails"][0]);
+                    $video->setScreenshots($job["resources"]["thumnails"]);
+                    # add random poster selecttion
+                    if(count(@$job["resources"]["thumnails"]) > 1){
+                        $index = random_int(1,count($job["resources"]["thumnails"])-1);
+                        $video->setPoster($job["resources"]["thumnails"][$index]);
+                    }
+
+                    $video->setWebvtt($job["resources"]["webvtt"]);
+                    $video->setManifest($job["resources"]["manifests"][0]);
+                    $video->setVariants(array_slice($job["resources"]["manifests"], 1));
+                }
+
+                $this->em->persist($video);
+                $this->em->flush();
+                $result["payload"][] = $job;
+
+                if(in_array($job["status"],["COMPLETE","ERROR","CANCELED"])){
+                    // supprimer les fichiers source mp4
+                    $filename = $basedir . "/" .$video->getCode().".mp4";
+                    // fichier video a supprimer
+                    if(file_exists($filename)){
+                        @unlink($filename);
+                    }
+                }
+
+                //Traitement pour notifier au client le resultat
+                $datas = [];
+                $datas['payload'] = [
+                    "code" => $video->getCode(),
+                    "jobRef" => $video->getJobRef(),
+                    "jobPercent" => $video->getJobPercent(),
+                    "state" => $video->getState(),
+                    "duration" => $video->getDuration(),
+                    "startTime" => $video->getJobStartTime() ? $video->getJobStartTime()->getTimestamp() : null,
+                    "submitTime" => $video->getJobSubmitTime() ? $video->getJobSubmitTime()->getTimestamp() : null,
+                    "finishTime" => $video->getJobFinishTime() ?  $video->getJobFinishTime()->getTimestamp() : null,
+                    "download" => $video->getDownload(),
+                    "poster" => $video->getPoster(),
+                    "screenshots" => $video->getScreenshots(),
+                    "webvtt" => $video->getWebvtt(),
+                    "manifest" => $video->getManifest(),
+                    "variants" => $video->getVariants(),
+                    "bucket" => $video->getBucket(),
+                    "region" => $video->getRegion()
+                ];
+
+                $attributes = [
+                    "content_type"=>"application/json",
+                    "delivery_mode"=>2,
+                    "correlation_id"=>uniqid(),
+                ];
+                $this->bus->dispatch(new DefaulfMessage([
+                    "action"=>"mc.transcoding.status",
+                    "payload"=>$datas['payload'],
+                ]),[
+                    new AmqpStamp('mc.transcoding.status', AMQP_NOPARAM, $attributes),
+                ]);
+
+                $job["html"] = $this->twig->render("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
             }
         }
 
-
-//        if(!$rep->count(["state"=>["PROGRESSING","SUBMITTED"]])) {
-//            return ["payload"=>[]];
-//        }
-//
-//        $result = $this->mediaConvert->listJobs($maxResults,'DESCENDING', null);
-//
-//        if(isset($result["payload"])){
-//            foreach ($result["payload"] as &$job){
-//
-//                if(($video = $rep->findOneBy(["jobRef"=>$job["id"]]))) {
-//
-//                    if(!in_array($video->getState(),["PROGRESSING","pending","SUBMITTED"])){
-//                        continue;
-//                    }
-//
-//                    if(isset($job["status"]) && $job["status"] != $video->getState()){
-//                        $video->setState($job["status"]);
-//                    }
-//
-//                    if(isset($job["duration"]) && $job["duration"] != $video->getDuration()){
-//                        $video->setDuration($job["duration"]);
-//                    }
-//
-//                    if($job["status"] == "COMPLETE") {
-//                        $video->setJobPercent(100);
-//                    }
-//                    else{
-//                        $video->setJobPercent($job["jobPercent"]);
-//                    }
-//
-//                    if (isset($job["startTime"]) && $job["startTime"]) {
-//                        $video->setjobStartTime(new \DateTimeImmutable($job["startTime"]));
-//                    }
-//
-//                    if (isset($job["submitTime"]) && $job["submitTime"]) {
-//                        $video->setjobSubmitTime(new \DateTimeImmutable($job["submitTime"]));
-//                    }
-//
-//                    if (isset($job["finishTime"]) && $job["finishTime"]) {
-//                        $video->setjobFinishTime(new \DateTimeImmutable($job["finishTime"]));
-//                    }
-//
-//                    if($job["status"] == "COMPLETE"){
-//                        $bucket = $job["bucket"];
-//                        $prefix = $job["prefix"];
-//                        $job["resources"] = $this->mediaConvert->getResources($bucket,$prefix);
-//                    }
-//
-//                    if (isset($job["resources"]) && count($job["resources"])) {
-//                        #fix bug #045 not enough images on getstatus
-//                        $video->setPoster($job["resources"]["thumnails"][0]);
-//                        $video->setScreenshots($job["resources"]["thumnails"]);
-//
-//                        $video->setWebvtt($job["resources"]["webvtt"]);
-//                        $video->setManifest($job["resources"]["manifests"][0]);
-//                        $video->setVariants(array_slice($job["resources"]["manifests"], 1));
-//                    }
-//
-//                    $this->em->persist($video);
-//                    $this->em->flush();
-//
-//                    if(in_array($job["status"],["COMPLETE","ERROR","CANCELED"])){
-//                        // supprimer les fichiers source mp4
-//                        $filename = $basedir . "/" .$video->getCode().".mp4";
-//                        // fichier video a supprimer
-//                        if(file_exists($filename)){
-//                            @unlink($filename);
-//                        }
-//                    }
-//                    $job["html"] = $this->twig->render("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
-//
-//                }
-//            }
-//            unset($job);
-//        }
         return $result;
     }
 
@@ -501,8 +436,17 @@ class CoaVideolibraryService
         return $basedir;
     }
 
-    public function upload()
-    {
+    /**
+     * upload par petit chunck avec reconstitution de fichier à la fin de l'opération
+     *
+     * @return string[]
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws \Twig\Error\LoaderError
+     * @throws \Twig\Error\RuntimeError
+     * @throws \Twig\Error\SyntaxError
+     */
+    public function upload(){
         $request = $this->requestStack->getMainRequest();
         $em = $this->em;
         $video_entity = $this->container->get("coa_videolibrary.video_entity");
@@ -541,15 +485,17 @@ class CoaVideolibraryService
 
             $code = $video->getCode();
             $chunk = $file->getContent();
-            $filepath = sprintf($targetDirectory . "/%s.mp4", $code);
+            $filepath = sprintf($targetDirectory . "/%s.partial", $code);
             file_put_contents($filepath, $chunk, FILE_APPEND);
             $video->setFileSize($video->getFileSize() + $file_length);
             $video->setEncrypted($encrypted);
             $video->setUseFor($usefor);
 
-
             if($is_end) {
                 $video->setState("pending");
+                // renomme le fichier temporaire en fichier d'extension final
+                $newfilepath = sprintf($targetDirectory . "/%s.mp4", $code);
+                rename($filepath,$newfilepath);
             }
 
             $result["video_id"] = $video->getCode();
@@ -557,21 +503,10 @@ class CoaVideolibraryService
 
             if ($is_end) {
                 $result['status'] = "success";
-                $key_baseurl = $this->container->get("coa_videolibrary.hls_key_baseurl");
                 $baseurl = $request->getSchemeAndHttpHost();
-
-                if(!$key_baseurl){
-                    $key_baseurl = $baseurl;
-                }
-
-
-                //Surcharger la baseurl,key_baseurl par le domaine du client lié à la vidéo
-                if($client = $video->getClient()) {
-                    $key_baseurl = $client->getHlsKeyBaseurl();
-                }
-
+                $client = $video->getClient();
+                $key_baseurl = $client->getHlsKeyBaseurl();
                 $this->transcode($video,$baseurl,$key_baseurl);
-
                 $result["html"] = $this->twig->render("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
             }
 
@@ -582,7 +517,8 @@ class CoaVideolibraryService
 
             if ($file->getMimeType() !== "video/mp4") {
                 $result['log'] = sprintf("Veuillez utiliser un fichier mp4, %s n'est pas un fichier valide", $originalFilename);
-                return $this->json($result,400);
+                $result["code"] = 400;
+                return $result;
             }
 
             $code = substr(trim(base64_encode(bin2hex(openssl_random_pseudo_bytes(32,$ok))),"="),0,32);
@@ -591,10 +527,8 @@ class CoaVideolibraryService
             }
 
             $chunk = $file->getContent();
-            $filepath = sprintf($targetDirectory . "/%s.mp4", $code);
+            $filepath = sprintf($targetDirectory . "/%s.partial", $code);
             file_put_contents($filepath, $chunk, FILE_APPEND);
-
-
 
             $video = new $video_entity();
             $video->setCode($code);

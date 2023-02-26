@@ -36,21 +36,19 @@ use function Doctrine\ORM\QueryBuilder;
 class VideolibraryController extends AbstractController
 {
     private MessageBusInterface $bus;
-    private EntityManagerInterface $manager;
+    private EntityManagerInterface $em;
     private S3Service $s3Service;
 
-    public function __construct(MessageBusInterface $bus, EntityManagerInterface $manager, S3Service $s3Service)
+    public function __construct(MessageBusInterface $bus, EntityManagerInterface $em, S3Service $s3Service)
     {
         $this->bus = $bus;
-        $this->manager = $manager;
+        $this->em = $em;
         $this->s3Service = $s3Service;
     }
 
     private function getVideo(string $code){
         $entity_class = $this->getParameter("coa_videolibrary.video_entity");
-        $em = $this->getDoctrine()->getManager();
-        $rep = $em->getRepository($entity_class);
-
+        $rep = $this->em->getRepository($entity_class);
         if(!($video = $rep->findOneBy(["code"=>$code]))){
             throw $this->createNotFoundException();
         }
@@ -470,16 +468,6 @@ class VideolibraryController extends AbstractController
     {
         $result = $coaVideolibrary->getStatus(20);
         return  $this->json($result);
-    }
-
-    /**
-     * @Route("/upload", name="upload")
-     * @IsGranted("ROLE_VIDEOLIBRARY_UPLOAD")
-     */
-    public function upload(CoaVideolibraryService $coaVideolibrary): Response
-    {
-        $result = $coaVideolibrary->upload();
-        return $this->json($result);
     }
 
 
