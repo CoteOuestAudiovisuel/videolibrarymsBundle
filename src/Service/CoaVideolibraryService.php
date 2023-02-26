@@ -106,7 +106,7 @@ class CoaVideolibraryService
             $fname = array_pop($client_name);
             $cname = array_pop($client_name);
 
-            if(!($client = $cRep->findOneBy(["name"=>$cname]))){
+            if(!($client = $cRep->findOneBy(["clientId"=>$cname]))){
                 // tout ce qui ne correspond pas a un client est supprimé
                 unlink($filename);
                 continue;
