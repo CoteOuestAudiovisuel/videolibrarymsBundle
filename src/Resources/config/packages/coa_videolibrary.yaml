@@ -5,8 +5,7 @@ coa_videolibrary:
   mediaconvert_endpoint: ~
   mediaconvert_role_arn: ~
   s3_bucket: ~
-  keys_route: '/keys'
-  hls_key_baseurl: ~
+  inputfile_baseurl: ~
   video_entity: ~
   prefix: ~
   constellation:

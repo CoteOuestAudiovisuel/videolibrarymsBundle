@@ -44,6 +44,7 @@ class ClientController extends AbstractController
      */
     public function add(Request $request): Response
     {
+        $ftpPath = $this->getParameter('kernel.project_dir') . "/coa_videolibrary_ftp";
         $client = new Client();
         $form = $this->createForm(ClientType::class, $client);
         $form->handleRequest($request);
@@ -62,6 +63,13 @@ class ClientController extends AbstractController
 
             $em->persist($client);
             $em->flush();
+
+            // creation du dossier ftp de ce client
+            $cname = strtolower($client->getClientId());
+            $clientftpDir = $ftpPath . "/" . $cname;
+            if(!file_exists($clientftpDir)){
+                mkdir($clientftpDir);
+            }
 
             $this->addFlash("success", "Ajouté avec succès");
 

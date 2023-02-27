@@ -142,6 +142,7 @@ Aaz.VideoLibrary = (function(nsp){
         const chunkSize = 2097152;
         let chunkCounter = 0;
         let video_id  = "";
+        let clientId = $("#upload-list").find("select[name=api-client-id]").val();
         let start = 0;
         let resp = null;
 
@@ -174,7 +175,7 @@ Aaz.VideoLibrary = (function(nsp){
             xhr.responseType = "json";
             // #fix bug #015
             xhr.upload.addEventListener("progress", updateProgress);
-            xhr.open("POST", "upload");
+            xhr.open("POST", `upload/${clientId}`);
             let blobEnd = chunkEnd-1;
             let contentRange = "bytes "+ start+"-"+ blobEnd+"/"+file.size;
             xhr.setRequestHeader("Content-Range",contentRange);
@@ -315,6 +316,7 @@ Aaz.VideoLibrary = (function(nsp){
                             </label>
                         </div>
                     </div>
+                    
                 </div>
 
                 <div class="progress-bar-xs progress mt-2" style="height: 1rem">

@@ -10,9 +10,8 @@ parameters:
         aws_region: ~
         mediaconvert_endpoint: ~
         mediaconvert_role_arn: ~
+        inputfile_baseurl: ~
         s3_bucket: ~
-        keys_route: '/keys'
-        hls_key_baseurl: ~
         video_entity: ~
 
 

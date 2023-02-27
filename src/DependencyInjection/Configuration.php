@@ -44,17 +44,6 @@ class Configuration implements ConfigurationInterface
                     ->defaultNull()
                 ->end()
 
-
-                ->scalarNode('keys_route')
-                    ->defaultValue("/keys")
-                    ->info('la route par default, pour les requete GET AES Key')
-                ->end()
-
-                ->scalarNode('hls_key_baseurl')
-                    ->info("la base url pour l'access GET aux  clés")
-                    ->defaultNull()
-                ->end()
-
                 ->scalarNode('inputfile_baseurl')
                     ->info("la base url pour l'access aux fichiers mp4")
                     ->defaultNull()

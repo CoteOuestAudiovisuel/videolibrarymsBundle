@@ -3,6 +3,7 @@
 namespace Coa\VideolibraryBundle\Controller;
 
 use Coa\MessengerBundle\Messenger\Message\DefaulfMessage;
+use Coa\VideolibraryBundle\Entity\Client;
 use Coa\VideolibraryBundle\Entity\Video;
 use Coa\VideolibraryBundle\Extensions\Twig\AwsS3Url;
 use Coa\VideolibraryBundle\Form\ScreenshotType;
@@ -36,21 +37,19 @@ use function Doctrine\ORM\QueryBuilder;
 class VideolibraryController extends AbstractController
 {
     private MessageBusInterface $bus;
-    private EntityManagerInterface $manager;
+    private EntityManagerInterface $em;
     private S3Service $s3Service;
 
-    public function __construct(MessageBusInterface $bus, EntityManagerInterface $manager, S3Service $s3Service)
+    public function __construct(MessageBusInterface $bus, EntityManagerInterface $em, S3Service $s3Service)
     {
         $this->bus = $bus;
-        $this->manager = $manager;
+        $this->em = $em;
         $this->s3Service = $s3Service;
     }
 
     private function getVideo(string $code){
         $entity_class = $this->getParameter("coa_videolibrary.video_entity");
-        $em = $this->getDoctrine()->getManager();
-        $rep = $em->getRepository($entity_class);
-
+        $rep = $this->em->getRepository($entity_class);
         if(!($video = $rep->findOneBy(["code"=>$code]))){
             throw $this->createNotFoundException();
         }
@@ -63,6 +62,15 @@ class VideolibraryController extends AbstractController
             mkdir($basedir);
         }
         return $basedir;
+    }
+
+    /**
+     * @Route("/upload/{clientId}", name="upload")
+     * @IsGranted("ROLE_VIDEOLIBRARY_UPLOAD")
+     */
+    public function upload(CoaVideolibraryService $coaVideolibrary, Client $client): Response{
+        $result = $coaVideolibrary->upload($client);
+        return $this->json($result);
     }
 
 
@@ -93,7 +101,8 @@ class VideolibraryController extends AbstractController
 
         return $this->render($view, [
             'videos' => $data,
-            "service" => $service
+            "service" => $service,
+            "apiClients" => $this->em->getRepository(Client::class)->findAll()
         ]);
     }
 
@@ -470,16 +479,6 @@ class VideolibraryController extends AbstractController
     {
         $result = $coaVideolibrary->getStatus(20);
         return  $this->json($result);
-    }
-
-    /**
-     * @Route("/upload", name="upload")
-     * @IsGranted("ROLE_VIDEOLIBRARY_UPLOAD")
-     */
-    public function upload(CoaVideolibraryService $coaVideolibrary): Response
-    {
-        $result = $coaVideolibrary->upload();
-        return $this->json($result);
     }
 
 
