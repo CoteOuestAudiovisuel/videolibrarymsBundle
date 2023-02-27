@@ -143,6 +143,7 @@ Aaz.VideoLibrary = (function(nsp){
         let chunkCounter = 0;
         let video_id  = "";
         let clientId = $("#upload-list").find("select[name=api-client-id]").val();
+        let clientObj = $("#upload-list").find("select[name=api-client-id]");
         let start = 0;
         let resp = null;
 
@@ -165,6 +166,9 @@ Aaz.VideoLibrary = (function(nsp){
             chunkForm.append('file', chunk, filename);
             chunkForm.append('encryption', aes_input.prop("checked")?'on':'off');
             chunkForm.append('usefor', usefor_input.val());
+
+            clientObj.attr('disabled', 'disabled');
+
             uploadChunk(chunkForm, start, chunkEnd);
         }
 
@@ -215,6 +219,7 @@ Aaz.VideoLibrary = (function(nsp){
                         if($this._toUpload.length === 0){
                             $("#upload-list").removeClass("open");
                             $this._in_upload = false;
+                            clientObj.removeAttr('disabled')
                             $this.emit(new nsp.Event("upload_ended",{}));
                         }
 
