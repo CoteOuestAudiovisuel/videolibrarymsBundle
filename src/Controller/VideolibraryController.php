@@ -39,12 +39,14 @@ class VideolibraryController extends AbstractController
     private MessageBusInterface $bus;
     private EntityManagerInterface $em;
     private S3Service $s3Service;
+    private CoaVideolibraryService $coaVideolibrary;
 
-    public function __construct(MessageBusInterface $bus, EntityManagerInterface $em, S3Service $s3Service)
+    public function __construct(MessageBusInterface $bus, EntityManagerInterface $em, S3Service $s3Service, CoaVideolibraryService $coaVideolibrary)
     {
         $this->bus = $bus;
         $this->em = $em;
         $this->s3Service = $s3Service;
+        $this->coaVideolibrary = $coaVideolibrary;
     }
 
     private function getVideo(string $code){
@@ -151,19 +153,13 @@ class VideolibraryController extends AbstractController
             case "COMPLETE":
                 $r = $s3Service->deleteObject($bucket,$prefix);
                 $result["payload"] = $r;
-                $attributes = [
-                    "content_type"=>"application/json",
-                    "delivery_mode"=>2,
-                    "correlation_id"=>uniqid(),
+
+                $payload = [
+                    "code"=>$video->getCode()
                 ];
-                $this->bus->dispatch(new DefaulfMessage([
-                    "action"=>"mc.video.remove",
-                    "payload"=>[
-                        "code"=>$video->getCode(),
-                    ],
-                ]),[
-                    new AmqpStamp('mc.video.remove', AMQP_NOPARAM, $attributes),
-                ]);
+
+                $this->coaVideolibrary->multicastMessage('mc.video.remove', $payload);
+
                 break;
 
             // annulation de la tache de transcodage dans mediaconvert
@@ -211,14 +207,17 @@ class VideolibraryController extends AbstractController
                     "delivery_mode"=>2,
                     "correlation_id"=>uniqid(),
                 ];
+
+                $action = "mc.transcoding.canceled." . $video->getClient()->getRoutingSuffix();
+
                 $this->bus->dispatch(new DefaulfMessage([
-                    "action"=>"mc.transcoding.canceled",
+                    "action"=>$action,
                     "payload"=>[
                         "code"=>$video->getCode(),
                         "jobRef"=>$video->getJobRef(),
                     ],
                 ]),[
-                    new AmqpStamp('mc.transcoding.canceled', AMQP_NOPARAM, $attributes),
+                    new AmqpStamp($action, AMQP_NOPARAM, $attributes),
                 ]);
             }
         }
@@ -282,21 +281,12 @@ class VideolibraryController extends AbstractController
         $result["status"] = true;
         $result["message"] = "Durée modifiée avec succès";
 
-
-        $attributes = [
-            "content_type"=>"application/json",
-            "delivery_mode"=>2,
-            "correlation_id"=>uniqid(),
+        $payload = [
+            "code"=>$video->getCode(),
+            "duration"=>$seconds,
         ];
-        $this->bus->dispatch(new DefaulfMessage([
-            "action"=>"mc.video.duration",
-            "payload"=>[
-                "code"=>$video->getCode(),
-                "duration"=>$seconds,
-            ],
-        ]),[
-            new AmqpStamp('mc.video.duration', AMQP_NOPARAM, $attributes),
-        ]);
+
+        $this->coaVideolibrary->multicastMessage('mc.video.duration', $payload);
 
         return  $this->json($result);
     }
@@ -320,21 +310,13 @@ class VideolibraryController extends AbstractController
             $result["url"] = $awsS3Url->urlBasename($key,$video);
         }
 
-        $attributes = [
-            "content_type"=>"application/json",
-            "delivery_mode"=>2,
-            "correlation_id"=>uniqid(),
+        $payload = [
+            "code"=>$video->getCode(),
+            "poster"=>$key
         ];
-        $this->bus->dispatch(new DefaulfMessage([
-            "action"=>"mc.video.poster",
-            "payload"=>[
-                "code"=>$video->getCode(),
-                "poster"=>$key
-            ],
-        ]),[
-            new AmqpStamp('mc.video.poster', AMQP_NOPARAM, $attributes),
-        ]);
-
+        
+        $this->coaVideolibrary->multicastMessage('mc.video.poster', $payload);
+        
         return  $this->json($result);
     }
 
@@ -382,21 +364,13 @@ class VideolibraryController extends AbstractController
             $screenshot = $awsS3Url->urlBasename($filename, $video);
 
             //Dispatch
-            $attributes = [
-                "content_type"=>"application/json",
-                "delivery_mode"=>2,
-                "correlation_id"=>uniqid(),
+            $payload = [
+                "code" => $code,
+                "key" => $filename
             ];
-            $this->bus->dispatch(new DefaulfMessage([
-                "action"=>"mc.thumbnail.add",
-                "payload"=>[
-                    "code" => $code,
-                    "key" => $filename
-                ],
-            ]),[
-                new AmqpStamp('mc.thumbnail.add', AMQP_NOPARAM, $attributes),
-            ]);
-
+            
+            $this->coaVideolibrary->multicastMessage('mc.thumbnail.add', $payload);
+            
             return $this->json([
                 'status' => 'successful',
                 'screenshot' => $screenshot,
@@ -452,20 +426,12 @@ class VideolibraryController extends AbstractController
         $this->s3Service->deleteObject($video->getBucket(), $key);
 
         //Dispatch
-        $attributes = [
-            "content_type"=>"application/json",
-            "delivery_mode"=>2,
-            "correlation_id"=>uniqid(),
+        $payload = [
+            "code" => $code,
+            "key" => $key
         ];
-        $this->bus->dispatch(new DefaulfMessage([
-            "action"=>"mc.thumbnail.remove",
-            "payload"=>[
-                "code" => $code,
-                "key" => $key
-            ],
-        ]),[
-            new AmqpStamp('mc.thumbnail.remove', AMQP_NOPARAM, $attributes),
-        ]);
+
+        $this->coaVideolibrary->multicastMessage('mc.thumbnail.remove', $payload);
 
         return $this->json([
             'status' => 'successful'

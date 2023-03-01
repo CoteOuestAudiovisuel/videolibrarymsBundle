@@ -258,11 +258,14 @@ class CoaVideolibraryService
                     "delivery_mode"=>2,
                     "correlation_id"=>uniqid(),
                 ];
+                
+                $action = "mc.transcoding.status." . $client->getRoutingSuffix();
+                
                 $this->bus->dispatch(new DefaulfMessage([
-                    "action"=>"mc.transcoding.status",
+                    "action"=>$action,
                     "payload"=>$datas['payload'],
                 ]),[
-                    new AmqpStamp('mc.transcoding.status', AMQP_NOPARAM, $attributes),
+                    new AmqpStamp($action, AMQP_NOPARAM, $attributes),
                 ]);
 
                 $job["html"] = $this->twig->render("@CoaVideolibrary/home/item-render.html.twig",["videos"=>[$video]]);
@@ -554,5 +557,32 @@ class CoaVideolibraryService
         }
 
         return $result;
+    }
+
+    public function multicastMessage(string $action, array $payload, ?array $attributes = [])
+    {
+        $clients = $this->em->getRepository(Client::class)->findBy(['isEnabled' => true]);
+
+
+        $attributes = array_merge([
+            "content_type"=>"application/json",
+            "delivery_mode"=>2
+        ], $attributes);
+        
+        foreach ($clients as $client) {
+            if($client->getRoutingSuffix()) {
+
+                $action .= "." . $client->getRoutingSuffix();
+
+                $this->bus->dispatch(new DefaulfMessage([
+                    "action"=>$action,
+                    "payload"=>$payload,
+                ]),[
+                    new AmqpStamp($action, AMQP_NOPARAM, $attributes),
+                ]);
+
+            }
+        }
+        
     }
 }

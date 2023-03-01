@@ -65,7 +65,7 @@ class ClientController extends AbstractController
             $em->flush();
 
             // creation du dossier ftp de ce client
-            $cname = strtolower($client->getClientId());
+            $cname = $client->getClientId();
             $clientftpDir = $ftpPath . "/" . $cname;
             if(!file_exists($clientftpDir)){
                 mkdir($clientftpDir);

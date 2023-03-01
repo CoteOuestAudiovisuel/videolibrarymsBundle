@@ -46,7 +46,7 @@ class ClientType extends AbstractType
                     return $er->createQueryBuilder('qb')
                                 ->andWhere('qb.isEnabled = true');
                 },
-                'choice_label' => 'name',
+                'choice_label' => 'label',
                 'multiple' => true,
                 'attr' => [
                     'class' => 'multiselect-dropdown mb-3'
@@ -116,6 +116,12 @@ class ClientType extends AbstractType
                     ]
                 ]
             )
+            ->add('routingSuffix', TextType::class, [
+                'label' => 'Routing suffix',
+                'attr' => [
+                    'placeholder' => 'Entrer le routing suffix'
+                ]
+            ])
         ;
     }
 

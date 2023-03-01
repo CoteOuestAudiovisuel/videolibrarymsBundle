@@ -58,6 +58,11 @@ class Client implements UserInterface
     private $clientToken;
 
     /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $routingSuffix;
+
+    /**
      * @ORM\ManyToMany(targetEntity="GrantType", inversedBy="clients")
      * @ORM\JoinTable("videolibrary_client_grant_type")
      */
@@ -172,6 +177,24 @@ class Client implements UserInterface
     }
 
     /**
+     * @param mixed $routingSuffix
+     * @return Client
+     */
+    public function setRoutingSuffix(string $routingSuffix): self
+    {
+        $this->routingSuffix = $routingSuffix;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRoutingSuffix(): string
+    {
+        return $this->routingSuffix;
+    }
+
+    /**
      * @param mixed $clientToken
      * @return Client
      */
@@ -207,7 +230,11 @@ class Client implements UserInterface
 
     public function addGrantType(GrantType $grantType): self
     {
-        if (!$this->grantTypes->contains($grantType)) {
+        if($this->grantTypes) {
+            if (!$this->grantTypes->contains($grantType)) {
+                $this->grantTypes[] = $grantType;
+            }
+        } else {
             $this->grantTypes[] = $grantType;
         }
 
