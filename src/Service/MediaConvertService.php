@@ -317,11 +317,12 @@ class MediaConvertService
                     "iv" => base64_encode($iv)
                 ];
             }
+            $action = "mc.transcoding.submitted." . $video->getClient()->getRoutingSuffix();
             $this->bus->dispatch(new DefaulfMessage([
-                "action"=>"mc.transcoding.submitted",
+                "action"=>$action,
                 "payload"=>$datas['payload'],
             ]),[
-                new AmqpStamp('mc.transcoding.submitted', AMQP_NOPARAM, $attributes),
+                new AmqpStamp($action, AMQP_NOPARAM, $attributes),
             ]);
 
             return $result;
