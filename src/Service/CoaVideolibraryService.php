@@ -60,7 +60,7 @@ class CoaVideolibraryService
         $input_path = $videosPath."/".$code.'.mp4';
         if(!file_exists($input_path)) return;
 
-        $inputfile = $video_baseurl.'/coa_videolibrary_upload/'.$code.'.mp4';
+        $inputfile = $video_baseurl.'/'.$code.'.mp4';
         $keyfilename = $code;
         $bucket = $this->container->get("coa_videolibrary.s3_bucket");
         $region = $this->container->get("coa_videolibrary.aws_region");
@@ -506,7 +506,7 @@ class CoaVideolibraryService
 
             if ($is_end) {
                 $result['status'] = "success";
-                $baseurl = $request->getSchemeAndHttpHost();
+                $baseurl = $this->container->get('coa_videolibrary.inputfile_baseurl');
                 $client = $video->getClient();
                 $key_baseurl = $client->getHlsKeyBaseurl();
                 $this->transcode($video,$baseurl,$key_baseurl);
